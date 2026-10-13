@@ -2,6 +2,8 @@
 
 These are provisional implementation results, not the completed assignment.
 
+The subsequent [discretization selection](DISCRETIZATION.md) completes the independent-refinement review and recommends 96/128 segments at tolerance 1e-8. The results below are retained as the first combined-grid study.
+
 ## Surface discretization example
 
 R = 1 m, r = 0.4 m, d = 0.3 m, T_A = 30 C, T_B = 200 C, epsilon_A = 0.6, epsilon_B = 0.8. Source integration tolerance is 1e-8.
@@ -36,4 +38,4 @@ python run_example.py
 
 ## Next work
 
-Review the working physical parameters, establish and document the selected discretization, run the full required physical parameter studies, and develop the written interpretation. The prototype is ready for local review; cloud deployment is still pending.
+Working parameters and the 96/128 study discretization have now been reviewed and documented in DISCRETIZATION.md. Next, interpret and present the required physical parameter studies. The interactive app supports automatic updates, a fast preview, and custom independent segment counts. Cloud deployment is still pending.

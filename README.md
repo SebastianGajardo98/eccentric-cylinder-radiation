@@ -58,11 +58,13 @@ python -m pytest -q
 python -m streamlit run streamlit_app.py
 ```
 
-The sidebar uses a Calculate button to submit parameter changes. Geometry-dependent view factors are cached; temperature and emissivity changes reuse them. Convergence and parameter studies run only when requested. The parameter workspace supports playback through calculated steady-state cases.
+The sidebar updates automatically when you change a control. Turn off Update automatically to batch changes with Calculate. Preview uses 24/16 segments for faster exploration; Study uses the reviewed 96/128 mesh; Custom lets you set both counts independently. Geometry-dependent view factors are cached; temperature and emissivity changes reuse them. Convergence and parameter studies run only when requested. The parameter workspace supports playback through calculated steady-state cases.
 
-See [the assignment plan](docs/PLAN.md) and [the model derivation](docs/MODEL.md). Working parameters and initial segment counts are provisional until convergence is assessed.
+See [the assignment plan](docs/PLAN.md), [the model derivation](docs/MODEL.md), and [the completed discretization selection](docs/DISCRETIZATION.md). The recommended study mesh is 96 outer / 128 inner segments at source integration tolerance 1e-8, qualified at the documented geometry points with emissivities 0.6/0.8. Other user-selected cases remain available for exploration and can be assessed using the convergence controls.
 
 [First implementation results](docs/FIRST_RESULTS.md) include a reproducible refinement study. Run `python run_example.py` to regenerate its data.
+
+Independent refinement, qualification, temperature-scaling checks, and a further high-eccentricity reference are reproduced with `run_discretization.py`. Commands and raw results are documented in docs/DISCRETIZATION.md. `results/discretization/selected.json` records the recommended settings and their scope.
 
 The view-factor matrix export orders outer segments first, then inner segments, with zero-based index labels. Full parameter and flux exports include physical parameters and diagnostics.
 
@@ -70,6 +72,8 @@ The view-factor matrix export orders outer segments first, then inner segments, 
 
 Implemented: circular-arc view factors with inner-cylinder obstruction, diffuse-gray radiosity solver, representative physical consistency tests, a Streamlit prototype, convergence controls, parameter sweeps, and steady-state playback. GitHub Actions runs the numerical checks.
 
-Remaining: select the final discretization from convergence evidence, interpret the required parameter studies, polish the presentation and final report, decide whether to include analytical comparisons, and deploy the app.
+Completed: working-parameter review and selection of the 96/128 study discretization from independent refinement and study-point qualification.
+
+Remaining: interpret and present the required parameter studies, polish the final report, decide whether to include analytical comparisons, and deploy the app.
 
 The intended deployment is Streamlit Community Cloud connected to this GitHub repository.

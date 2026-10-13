@@ -1,0 +1,5 @@
+check,point,coarse,fine,profile_change_percent,mean_change_percent,max_deviation_change_pp,peak_to_peak_change_pp,passes,max_deviation_range_pp,peak_to_peak_range_pp
+integration,baseline,baseline_integration_8,baseline_integration_9,1.658190498242759e-11,3.375078005272872e-13,2.4638069362481474e-12,1.2738254895339196e-11,True,,
+temperature_scaling,baseline,,,,,,,,1.184830011879967e-12,1.6697754290362354e-12
+integration,high_eccentricity,high_eccentricity_integration_8,high_eccentricity_integration_9,2.629063412676109e-10,5.470365031492074e-12,2.5051960506061732e-11,2.936673126896494e-11,True,,
+temperature_scaling,high_eccentricity,,,,,,,,9.43245481721533e-13,1.7053025658242404e-12

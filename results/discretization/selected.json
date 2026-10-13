@@ -1,0 +1,112 @@
+{
+  "n_outer": 96,
+  "n_inner": 128,
+  "integration_tolerance": 1e-08,
+  "baseline": {
+    "R_m": 1.0,
+    "r_m": 0.4,
+    "d_m": 0.3,
+    "temperature_outer_c": 30,
+    "temperature_inner_c": 200,
+    "emissivity_outer": 0.6,
+    "emissivity_inner": 0.8
+  },
+  "criteria": {
+    "profile_change_percent_max": 0.5,
+    "max_deviation_change_pp_max": 0.1,
+    "peak_to_peak_change_pp_max": 0.1
+  },
+  "reference_mesh": {
+    "n_outer": 192,
+    "n_inner": 256
+  },
+  "additional_reference_mesh_at_e_0_9": {
+    "n_outer": 384,
+    "n_inner": 256
+  },
+  "qualified_geometry_points": [
+    {
+      "point": "baseline",
+      "r": 0.4,
+      "d": 0.3,
+      "e": 0.5
+    },
+    {
+      "point": "eccentricity_0",
+      "r": 0.4,
+      "d": 0.0,
+      "e": 0.0
+    },
+    {
+      "point": "eccentricity_1",
+      "r": 0.4,
+      "d": 0.09,
+      "e": 0.15
+    },
+    {
+      "point": "eccentricity_2",
+      "r": 0.4,
+      "d": 0.18,
+      "e": 0.3
+    },
+    {
+      "point": "eccentricity_3",
+      "r": 0.4,
+      "d": 0.2699999999999999,
+      "e": 0.4499999999999999
+    },
+    {
+      "point": "eccentricity_4",
+      "r": 0.4,
+      "d": 0.36,
+      "e": 0.6
+    },
+    {
+      "point": "eccentricity_5",
+      "r": 0.4,
+      "d": 0.4499999999999999,
+      "e": 0.75
+    },
+    {
+      "point": "eccentricity_6",
+      "r": 0.4,
+      "d": 0.54,
+      "e": 0.9000000000000001
+    },
+    {
+      "point": "radius_0",
+      "r": 0.2,
+      "d": 0.3,
+      "e": 0.3749999999999999
+    },
+    {
+      "point": "radius_1",
+      "r": 0.3,
+      "d": 0.3,
+      "e": 0.4285714285714286
+    },
+    {
+      "point": "radius_3",
+      "r": 0.5,
+      "d": 0.3,
+      "e": 0.6
+    },
+    {
+      "point": "radius_4",
+      "r": 0.6,
+      "d": 0.3,
+      "e": 0.7499999999999999
+    }
+  ],
+  "temperature_scaling_checked_c": [
+    60,
+    200,
+    400
+  ],
+  "maximum_profile_change_percent": 0.047166254938732,
+  "maximum_max_deviation_change_pp": 0.0454514282223321,
+  "maximum_peak_to_peak_change_pp": 0.049711282480402,
+  "solver_sha256": "273b652f7cdb04d31ff319b38b448d1270a76208f0bfcb5a5f25f04497840380",
+  "scope": "Specified geometry points, fixed emissivities 0.6/0.8. Other combinations remain available for exploration and require separate convergence assessment.",
+  "interpretation": "Finite-mesh differences, not rigorous absolute error bounds. Analytical comparisons remain deferred."
+}

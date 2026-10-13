@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 from pathlib import Path
+import json
 
 import altair as alt
 import matplotlib.pyplot as plt
@@ -12,7 +13,12 @@ import streamlit as st
 
 from radiation import Geometry, calculate_view_factors, solve_radiation
 
-st.set_page_config(page_title="Eccentric cylinder radiation", layout="wide")
+selection_path = Path(__file__).parent / "results" / "discretization" / "selected.json"
+selection = json.loads(selection_path.read_text(encoding="utf-8")) if selection_path.exists() else None
+recommended_outer = selection["n_outer"] if selection else 96
+recommended_inner = selection["n_inner"] if selection else 64
+
+st.set_page_config(page_title="Eccentric cylinder radiation", layout="wide", initial_sidebar_state="expanded")
 st.title("Radiation between eccentric cylinders")
 st.caption("Heat and Mass Transfer · Sebastian Gajardo Lobos · Steady-state diffuse-gray enclosure")
 
@@ -103,19 +109,33 @@ def summary_row(result):
 with st.sidebar:
     st.subheader("Physical parameters")
     st.caption("Outer radius 1 m · Outer temperature 30 °C")
-    with st.form("parameters"):
-        radius = st.slider("Inner radius r (m)", 0.1, 0.8, 0.4, 0.05)
+    automatic = st.toggle("Update automatically", value=True,
+                          help="Update after each control change. Turn off to batch changes with Calculate.")
+    quality = st.segmented_control("Resolution", ["Preview", "Study", "Custom"], default="Preview")
+    controls = st.container() if automatic else st.form("parameters")
+    with controls:
+        radius = st.slider("Inner radius r (m)", 0.1, 0.8, 0.4, 0.05, key="radius")
         eccentricity = st.slider("Normalized eccentricity e", 0.0, 0.95, 0.5, 0.05,
-                                 help="e = d/(R-r). Zero is concentric; one is contact.")
-        temperature = st.slider("Inner temperature (°C)", 31.0, 600.0, 200.0, 1.0)
-        epsilon_a = st.slider("Outer emissivity", 0.05, 1.0, 0.6, 0.05)
-        epsilon_b = st.slider("Inner emissivity", 0.05, 1.0, 0.8, 0.05)
-        n_outer = st.select_slider("Outer segments", [8, 12, 24, 48, 96, 192], value=24)
-        n_inner = st.select_slider("Inner segments", [8, 16, 32, 64, 128], value=16)
+                                 help="e = d/(R-r). Zero is concentric; one is contact.", key="eccentricity")
+        temperature = st.slider("Inner temperature (°C)", 31.0, 600.0, 200.0, 1.0, key="temperature")
+        epsilon_a = st.slider("Outer emissivity", 0.05, 1.0, 0.6, 0.05, key="epsilon_a")
+        epsilon_b = st.slider("Inner emissivity", 0.05, 1.0, 0.8, 0.05, key="epsilon_b")
+        if quality == "Custom":
+            n_outer = int(st.number_input("Outer segments", min_value=4, max_value=512, value=recommended_outer, step=1, key="custom_outer"))
+            n_inner = int(st.number_input("Inner segments", min_value=4, max_value=512, value=recommended_inner, step=1, key="custom_inner"))
+        elif quality == "Study":
+            n_outer, n_inner = recommended_outer, recommended_inner
+        else:
+            n_outer, n_inner = 24, 16
         tolerance = st.select_slider("Integration tolerance", [1e-6, 1e-7, 1e-8, 1e-9], value=1e-8,
                                      format_func=lambda x: f"{x:.0e}")
-        st.form_submit_button("Calculate", type="primary", width="stretch")
-    st.caption("Working values are provisional. Surface segment convergence has not yet been established.")
+        if not automatic:
+            st.form_submit_button("Calculate", type="primary", width="stretch")
+    st.caption(f"{n_outer} outer / {n_inner} inner segments. Discretization is the number of arcs used to resolve each surface.")
+    if quality == "Preview":
+        st.caption("Preview favors speed. Choose Study for the recommended discretization, or Custom to set both counts independently.")
+    elif quality == "Study":
+        st.caption("Recommended for the documented study cases; other parameter combinations may need their own convergence check." if selection else "Study discretization is currently being reviewed.")
 
 g = Geometry(r=radius, d=eccentricity * (1-radius), n_outer=n_outer, n_inner=n_inner)
 thermal = {"temperature_outer_k": 303.15, "temperature_inner_k": temperature + 273.15,
@@ -125,8 +145,13 @@ view = st.segmented_control("Assignment workspace", ["Simulation", "Discretizati
 
 if view == "Model and plan (c)":
     st.info("Analytical comparisons for part (c) are optional and deferred. Numerical consistency checks remain part of the solver.")
-    document = st.selectbox("Document", ["Implementation plan", "Thermodynamic model"])
-    name = "PLAN.md" if document == "Implementation plan" else "MODEL.md"
+    documents = {"Implementation plan": "PLAN.md", "Thermodynamic model": "MODEL.md"}
+    if selection:
+        documents["Discretization selection"] = "DISCRETIZATION.md"
+    document = st.selectbox("Document", list(documents))
+    name = documents[document]
+    if name == "DISCRETIZATION.md":
+        st.image(str(selection_path.parent / "discretization_selection.png"), caption="Independent refinement and selected-mesh qualification", width="stretch")
     st.markdown((Path(__file__).parent / "docs" / name).read_text(encoding="utf-8"))
     st.stop()
 
@@ -147,8 +172,15 @@ if view == "Simulation":
 elif view == "Discretization (a)":
     st.subheader("Hold physics fixed and refine the numerical model")
     st.write("Refine the segments and integration tolerance separately. A small energy residual alone does not establish surface discretization convergence.")
+    if selection:
+        st.info(f"Study recommendation: {recommended_outer} outer / {recommended_inner} inner segments, tolerance {selection['integration_tolerance']:.0e}. The selection report is available in Model and plan (c). You can still choose any custom counts.")
+        with st.expander("Completed mesh-selection evidence"):
+            st.image(str(selection_path.parent / "discretization_selection.png"), width="stretch")
+            evidence = pd.read_csv(selection_path.parent / f"qualification_{recommended_outer}_{recommended_inner}_comparisons.csv")
+            st.dataframe(evidence, hide_index=True)
+            st.download_button("Download completed mesh qualification", evidence.to_csv(index=False), "mesh_qualification.csv", "text/csv")
     mode = st.selectbox("Refinement", ["Both surfaces", "Outer surface only", "Inner surface only", "Integration tolerance only"])
-    levels = st.slider("Refinement levels", 2, 4, 3)
+    levels = st.slider("Refinement levels", 2, 4, 2)
     study_signature = (signature, mode, levels)
     if st.button("Run convergence study", type="primary"):
         records, profiles = [], []
@@ -167,11 +199,13 @@ elif view == "Discretization (a)":
             result = calculate(case_g, case_tol, thermal)
             row = summary_row(result)
             frame = flux_table(result)
-            shared = np.linspace(0, 360, 720, endpoint=False)
+            shared = np.linspace(0, 360, 4096, endpoint=False)
             sampled = np.interp(shared, frame.angle_deg, frame.flux_w_m2, period=360)
             if previous is not None:
                 row["profile_change_percent"] = float(100*np.max(np.abs(sampled-previous)) / abs(result.metrics["mean_inner_flux_w_m2"]))
                 row["deviation_change_pp"] = abs(result.metrics["max_deviation_percent"] - records[-1]["max_deviation_percent"])
+                row["peak_to_peak_change_pp"] = abs(result.metrics["peak_to_peak_percent"] - records[-1]["peak_to_peak_percent"])
+                row["meets_change_criteria"] = row["profile_change_percent"] < 0.5 and row["deviation_change_pp"] < 0.1 and row["peak_to_peak_change_pp"] < 0.1
             records.append(row)
             profiles.append(frame.assign(case=f"{case_g.n_outer}/{case_g.n_inner}, tol {case_tol:.0e}"))
             previous = sampled

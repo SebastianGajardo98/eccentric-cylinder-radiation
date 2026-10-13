@@ -5,12 +5,14 @@ Analytical comparisons in part (c) are optional, following the professor's clari
 ## Part (a): model and discretization
 
 1. Derive the diffuse-gray radiosity equations and infinite-cylinder view-factor method (see MODEL.md).
-2. Use a provisional example: R = 1 m, r = 0.4 m, d = 0.3 m, T_A = 30 C, T_B = 200 C, epsilon_A = 0.6, epsilon_B = 0.8. These are working choices, not professor-specified values.
+2. Use the reviewed working example: R = 1 m, r = 0.4 m, d = 0.3 m, T_A = 30 C, T_B = 200 C, epsilon_A = 0.6, epsilon_B = 0.8. The outer radius and temperature are prescribed; the remaining values are working choices.
 3. First hold geometry and thermal parameters fixed and tighten the source integration tolerance independently of the surface segment counts.
 4. Refine equal-angle surface segments: initially (N_A, N_B) = (12, 8), (24, 16), (48, 32), (96, 64). Study independent outer/inner refinement if the combined sequence does not make their individual effects clear.
 5. Report angular flux, area-weighted mean, minimum, maximum, maximum relative deviation, peak-to-peak relative range, reciprocity, and energy balance.
-6. Compare profiles on a shared angular grid. A relative profile change below 0.5% and changes of the nonuniformity metrics below 0.1 percentage points are provisional criteria, to be evaluated rather than assumed.
+6. Compare profiles on a shared angular grid. Adopt changes below 0.5% in the normalized maximum profile difference and below 0.1 percentage points in both maximum-deviation and peak-to-peak metrics as practical finite-refinement criteria. They are not rigorous absolute error bounds.
 7. Select segment counts only after examining these results. Use the selected counts for part (b).
+
+**Completed selection:** 96 outer / 128 inner segments, source integration tolerance 1e-8. Independent surface refinements, integration checks, all 12 distinct planned geometry points, and an additional high-eccentricity reference support this choice. See [DISCRETIZATION.md](DISCRETIZATION.md) for the decision and evidence. Preview and Custom app settings remain freely adjustable.
 
 ## Part (b): physical parameter studies
 
