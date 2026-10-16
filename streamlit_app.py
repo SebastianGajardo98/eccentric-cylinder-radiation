@@ -68,7 +68,7 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
     with st.expander("Flux arrow display", expanded=False):
         fields = st.columns(2)
         representation_label = fields[0].selectbox("Arrows represent", ["Net heat flux", "Deviation from mean"], key=f"{key}_arrow_mode")
-        arrow_count = fields[1].select_slider("Visible arrows (display only)", [4, 8, 12, 16, 24, 32], value=4, key=f"{key}_fixed_arrow_count")
+        arrow_count = fields[1].select_slider("Visible arrows (display only)", [4, 8, 12, 16, 24, 32], value=8, key=f"{key}_eight_arrow_count")
         contrast = st.slider("Arrow length contrast (1 = proportional to q)", 1, 10, 6,
                              key=f"{key}_visual_length_contrast", disabled=representation_label != "Net heat flux",
                              help="Values above 1 visually emphasize differences. Colors and the angular chart still show the actual calculated flux.")
@@ -82,7 +82,7 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
                          length_contrast=contrast)
     st.pyplot(fig, width="stretch")
     plt.close(fig)
-    st.caption("Arrows align with the top, right, bottom and left of B. Their values are interpolated between segment averages for display; adding arrows does not refine the numerical model.")
+    st.caption("The default eight arrows show the four axes and four diagonals of B. Values are interpolated between segment averages for display; adding arrows does not refine the numerical model.")
     if diagram == "Cylinder B detail":
         st.caption("Close-up centered on B. Choose Enclosure above to see the offset and both cylinder walls.")
     with st.expander("Angular flux profile", expanded=False):

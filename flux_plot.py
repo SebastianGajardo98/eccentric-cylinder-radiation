@@ -143,8 +143,8 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
         ax.legend(loc="lower center", fontsize=9, framealpha=0.9)
     if detail:
         # Cardinal labels stay legible regardless of the number of extra arrows.
-        positions = [(0.98, 0.65, "right", "center"), (0.5, 0.89, "center", "top"),
-                     (0.02, 0.65, "left", "center"), (0.5, 0.11, "center", "bottom")]
+        positions = [(0.98, 0.60, "right", "center"), (0.5, 0.89, "center", "top"),
+                     (0.02, 0.60, "left", "center"), (0.5, 0.11, "center", "bottom")]
         for index, (x, y, ha, va) in zip(range(0, arrow_count, arrow_count//4), positions):
             value = sampled_values[index]
             if representation == "net":
