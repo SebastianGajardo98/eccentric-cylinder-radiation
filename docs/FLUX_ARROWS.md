@@ -1,45 +1,39 @@
-# Reading the surface-flux arrows
+# Reading the surface-flux diagram
 
-The arrows visualize the assignment's local net heat-flux density on cylinder B. They start on the surface and follow its normal. The default eight directions include right, top, left and bottom, plus four diagonals spaced halfway between them (every 45 degrees). These additional diagonals correspond to 3, 9, 15 and 21 on a 24-hour clock. Optional arrow counts retain the four axes. Arrow values are reconstructed by periodic linear interpolation between the calculated segment averages. They are approximate display values, not new pointwise solver results. The circumference colors and angular chart retain the original segment averages.
+## Geometry from the assignment
 
-At length contrast 1, arrow length is proportional to the selected quantity; the display scale is shown above the drawing. Higher contrast settings are explicitly labeled visual emphasis, not proportional physical lengths.
+The main diagram always shows the complete cross-section: cylinder B is inside cylinder A, with both circles drawn at the same physical scale. A has radius R = 1 m and center O_A = (0, 0); B has radius r and center O_B = (d, 0). The dotted straight line joins the centers. The space between the walls is a vacuum. Moving B changes the offset d while preserving the circular surfaces and their radii.
 
-## Net heat flux
+The parameters satisfy r < R and d < R-r, so the surfaces do not intersect. The concentric case d = 0 is available as a reference. The assignment concerns infinitely long cylinders; this drawing is a transverse cross-section, and heat rates are reported per unit axial length.
 
-- A longer outward arrow means greater net heat loss per unit surface area, in W/m^2.
-- For a genuinely negative net flux the arrow points inward. The assignment's hotter inner cylinder normally gives outward net flux.
-- The dashed contour marks the tips of equal-length arrows representing the current area-weighted mean flux. Actual tips outside that contour are above the mean; tips inside are below the mean.
-- The matching angular graph includes a dashed mean-flux line.
+## Net heat flux on B
 
-This is a surface-flux representation, not a ray-tracing animation. Diffuse radiation travels over a range of directions; these arrows summarize its net exchange at the surface.
+The default eight arrows start on B and follow its outward surface normals, every 45 degrees. They include the four axes and the four diagonals. The arrows summarize local net heat loss per unit surface area, not individual radiation-ray trajectories. Diffuse radiation travels over a range of directions.
+
+At the default length contrast 1, all arrow lengths use one proportional scale. A greater positive q gives a longer outward arrow. A genuinely negative q gives an inward arrow. All enclosure arrows are fitted with one scale that keeps them within A; they are not individually stretched to reach the wall. If the actual flux varies only slightly, the proportional lengths should also vary only slightly.
+
+The colored band on B shows the calculated segment-average flux in W/m^2. The visible angular profile and its mean-flux reference quantify the variation. Minimum, maximum and maximum relative deviation are reported numerically. These displays make small differences readable while retaining the real geometry and proportional default arrow lengths.
+
+Arrow values are reconstructed by periodic linear interpolation between segment averages. They are approximate display values, not additional pointwise solver results. Increasing the visible arrow count does not change or refine the numerical discretization. The circumference colors, angular profile and exports retain the original segment averages.
+
+## Optional display controls
+
+**Flux arrow display** provides the arrow count, the represented quantity, optional length emphasis and an optional mean-flux tip guide. The guide is off by default: the only circular boundaries in the initial diagram are the actual cylinder walls. When enabled, the dashed contour marks where equal arrows at the mean flux would end; it is not another cylinder.
+
+For optional length contrast greater than 1, the signed mapping is `abs(q_mean) * sign(q) * (abs(q)/abs(q_mean))**contrast`, applied before fitting the common drawing scale. It preserves ordering, sign and uniform fields, but exaggerates differences. The drawing explicitly states that lengths are not proportional to q and omits the linear W/m^2 arrow key. Colors, numerical values, angular profiles and solver results remain unchanged. Set contrast to 1 for quantitative comparisons by arrow length.
+
+Optional emphasis is defined around each case's own mean, so emphasized lengths should not be compared quantitatively across geometry cases with different means. Use contrast 1 or compare the actual numerical values and colors.
 
 ## Deviation from mean
 
-The displayed field is 100 (q_i - q_mean)/abs(q_mean), in percent. For the positive mean flux in the assignment this is the same relative deviation used in the numerical studies.
+The optional deviation representation uses `100 * (q - q_mean)/abs(q_mean)` in percent. Outward deviation arrows indicate above-average flux; inward deviation arrows indicate below-average flux. An inward deviation arrow does not imply that the actual net heat flows inward. The color scale is symmetric around zero, and the angular profile uses a zero reference.
 
-- An outward deviation arrow means above-average flux.
-- An inward deviation arrow means below-average flux, even when the actual net flux is still outward.
-- Red/blue colors distinguish positive/negative deviation, with a symmetric color scale centered on zero.
-- The angular graph shows the same percentages with a dashed zero reference.
-- Relative deviation is undefined at effectively zero mean flux. No deviation arrows are drawn in that case.
-- Numerical roundoff below 1e-8 percentage points is suppressed in the arrow diagram so a uniform solution does not show false nonuniformity.
+Relative deviation is undefined at effectively zero mean flux; no deviation arrows are drawn in that case. Roundoff below 1e-8 percentage points is suppressed so a uniform solution does not show false variations. The length-contrast control does not affect this representation.
 
-This view makes small variations easier to inspect without presenting magnified deviations as physical heat-flow reversal.
+## Comparing cases
 
-## Display and comparison
+Parameter playback keeps the outer-cylinder frame, arrow scale and color scale fixed across its cases. At contrast 1, arrow lengths and cylinder positions can be compared between frames. Independently fitted single-case views may use different drawing scales, so read the arrow key before comparing screen lengths between them.
 
-Every arrow should not be stretched to touch cylinder A. In that construction its length would encode the local distance to A, regardless of the calculated flux. Here all arrows use one common scale. The smallest and largest physical segment flux values appear below the diagram. The close-up labels show the reconstructed cardinal values and their signed deviation from the mean.
+For the illustrated diffuse-gray case with B offset to the right, calculated flux is lower on the right and higher on the left, while top and bottom agree by symmetry. Extrema come from the solution rather than an assumed relation to gap distance.
 
-The app opens with a full-width **Cylinder B detail** view, eight thick arrows and length contrast 6 to make small differences visible at normal browser sizes. The angular chart is available in its own expander below the diagram. In **Flux arrow display**, adjust **Arrow length contrast (1 = proportional to q)** to switch between emphasis and proportional lengths. The net-flux drawing uses the signed mapping `abs(q_mean) * sign(q) * (abs(q)/abs(q_mean))**contrast` on the reconstructed arrow values before fitting the common display scale. This preserves the flux ordering, its sign, and equal arrows for a uniform field; it exaggerates spatial variations without creating false inward arrows. There is no individual-arrow clipping. The setting has no effect on the signed-deviation view.
-
-Whenever contrast is greater than 1, the diagram states that lengths are not proportional to q and omits the linear W/m^2 arrow key. Color, numerical min/max, the angular graph, and all exported numerical results retain the physical q values. The dashed reference still corresponds to the actual mean because the length mapping fixes q = q_mean. Set contrast back to 1 for quantitative comparisons by arrow length.
-
-Emphasis is defined around each case's own mean. For fixed geometry and emissivities the emphasized lengths retain temperature scaling, but arbitrary geometry cases with different means must not be compared quantitatively by emphasized lengths. Use contrast 1, actual flux colors, or numerical values for those comparisons.
-
-Choose Enclosure to retain both cylinders, or Cylinder B detail for a larger view centered on the inner surface. The visible-arrow setting only changes the display sampling; it does not change the solver's discretization. In the illustrated case with B offset to the right, flux is lower on the right and higher on the left, while top and bottom agree by symmetry. Cardinal labels are computed from the solution rather than assigned assumed minimum/maximum values.
-
-A single-case view fits one common arrow scale to that view. It never rescales or truncates individual arrows. In enclosure view the global minimum gap limits the arrow length so glyphs stay inside A; the detail view removes that geometric restriction.
-
-All cases in parameter playback use one shared drawing scale, one shared detail-view extent, and one shared color scale. At contrast 1, arrow lengths can be compared quantitatively across playback frames, including temperature changes. Emphasized lengths instead highlight spatial variation within each frame. Separate single-case views can have different fitted scales: read the reference key rather than comparing screen lengths across them.
-
-The physical solver, numerical results, selected discretization and existing analytical-comparison scope are unchanged by this visualization.
+The physical solver, discretization studies and parameter studies are unchanged by the display controls. A readable diagram complements the required numerical analysis; it does not establish discretization convergence by itself.
