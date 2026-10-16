@@ -1,6 +1,6 @@
 """Surface-normal flux glyphs, with a shared scale for case playback.
 
-The arrows represent segment-averaged net flux or its signed relative deviation.
+The arrows interpolate segment-averaged flux onto evenly spaced directions.
 They are not radiation-ray trajectories. Their lengths are diagram lengths,
 not physical transport distances.
 """
@@ -24,7 +24,7 @@ def displayed_field(result, representation):
     return result.inner_flux
 
 
-def arrow_display_values(result, representation, length_contrast=1):
+def arrow_display_values(result, representation, length_contrast=1, *, values=None):
     """Optionally emphasize spatial differences without reversing flux signs.
 
     This changes glyph lengths only. The normal representation is recovered at
@@ -32,13 +32,28 @@ def arrow_display_values(result, representation, length_contrast=1):
     mean * (q/mean)**power. It preserves order, uniformity and the flux sign;
     color and numerical charts always use the untransformed physical field.
     """
-    values = displayed_field(result, representation)
+    if values is None:
+        values = displayed_field(result, representation)
     if not 1 <= length_contrast <= 10:
         raise ValueError("Length contrast must lie between 1 and 10.")
     if representation != "net" or length_contrast == 1 or result.metrics["max_deviation_percent"] is None:
         return values
     mean = abs(result.metrics["mean_inner_flux_w_m2"])
     return np.sign(values)*mean*(np.abs(values)/mean)**length_contrast
+
+
+def arrow_samples(result, representation, arrow_count):
+    """Reconstruct display values at fixed directions, including all four axes.
+
+    Interpolation is periodic and bounded by the adjacent segment averages.
+    Drawing more arrows does not improve the solver's spatial resolution.
+    """
+    if arrow_count < 4 or arrow_count % 4:
+        raise ValueError("Arrow count must be a positive multiple of four.")
+    angles = np.linspace(0, 2*np.pi, arrow_count, endpoint=False)
+    centers = result.view_factors.angles[result.view_factors.geometry.n_outer:]
+    values = np.interp(angles, centers, displayed_field(result, representation), period=2*np.pi)
+    return angles, values
 
 
 def arrow_length_scale(results, representation, detail, length_contrast=1):
@@ -68,13 +83,12 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
     g = result.view_factors.geometry
     cases = [result] if scale_results is None else scale_results
     values = displayed_field(result, representation)
-    lengths = arrow_display_values(result, representation, length_contrast)
     scale = arrow_length_scale(cases, representation, detail, length_contrast)
     arcs = []
     for i in range(g.n_inner):
         angles = np.linspace(i*2*np.pi/g.n_inner, (i+1)*2*np.pi/g.n_inner, 8)
         arcs.append(np.column_stack([g.d+g.r*np.cos(angles), g.r*np.sin(angles)]))
-    fig, ax = plt.subplots(figsize=(6.2, 5.6), layout="constrained")
+    fig, ax = plt.subplots(figsize=(9, 6.6), layout="constrained")
     theta = np.linspace(0, 2*np.pi, 361)
     if not detail:
         ax.plot(g.R*np.cos(theta), g.R*np.sin(theta), color="#64748b", linewidth=1.5)
@@ -95,19 +109,19 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
     collection.set_array(values)
     ax.add_collection(collection)
 
-    indices = np.floor(np.linspace(0, g.n_inner, min(arrow_count, g.n_inner), endpoint=False)).astype(int)
-    angles = result.view_factors.angles[g.n_outer:][indices]
+    angles, sampled_values = arrow_samples(result, representation, arrow_count)
+    lengths = arrow_display_values(result, representation, length_contrast, values=sampled_values)
     normals = np.column_stack([np.cos(angles), np.sin(angles)])
     sources = np.array([g.d, 0]) + g.r*normals
-    vectors = scale*lengths[indices, None]*normals
+    vectors = scale*lengths[:, None]*normals
     arrows = ax.quiver(sources[:, 0], sources[:, 1], vectors[:, 0], vectors[:, 1],
                        angles="xy", scale_units="xy", scale=1, pivot="tail",
-                       color="#334155", width=0.005, headwidth=3.8,
+                       color="#334155", width=0.009 if arrow_count <= 8 else 0.005, headwidth=3.8,
                        headlength=4.5, minlength=0, zorder=4)
     maximum = max(float(np.max(np.abs(displayed_field(c, representation)))) for c in cases)
     if representation == "net" and length_contrast != 1:
         ax.text(0.5, 0.98, f"Length contrast {length_contrast:g}: not proportional to q",
-                transform=ax.transAxes, ha="center", va="top", fontsize=9,
+                transform=ax.transAxes, ha="center", va="top", fontsize=11,
                 bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.9, "pad": 2})
     elif maximum > 1e-8 and scale > 0:
         target = maximum/2
@@ -126,12 +140,23 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
         radius = g.r+scale*mean
         ax.plot(g.d+radius*np.cos(theta), radius*np.sin(theta), "--",
                 color="#64748b", linewidth=1, label="Uniform mean-flux tips", zorder=2)
-        ax.legend(loc="lower center", fontsize=8, framealpha=0.9)
-    if representation == "net":
-        ax.text(0.035, 0.075,
-                f"q_min = {result.inner_flux.min():,.1f} W/m²\nq_max = {result.inner_flux.max():,.1f} W/m²",
-                transform=ax.transAxes, ha="left", va="bottom", fontsize=8,
-                bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.85, "pad": 2})
+        ax.legend(loc="lower center", fontsize=9, framealpha=0.9)
+    if detail:
+        # Cardinal labels stay legible regardless of the number of extra arrows.
+        positions = [(0.98, 0.65, "right", "center"), (0.5, 0.89, "center", "top"),
+                     (0.02, 0.65, "left", "center"), (0.5, 0.11, "center", "bottom")]
+        for index, (x, y, ha, va) in zip(range(0, arrow_count, arrow_count//4), positions):
+            value = sampled_values[index]
+            if representation == "net":
+                deviation = 100*(value-mean)/abs(mean) if result.metrics["max_deviation_percent"] is not None else None
+                label = f"q ≈ {value:,.0f} W/m²"
+                if deviation is not None:
+                    label += f"\n{deviation:+.1f}% from mean"
+            else:
+                label = f"{value:+.1f}% from mean" if result.metrics["max_deviation_percent"] is not None else "Undefined"
+            ax.text(x, y, label, transform=ax.transAxes, ha=ha, va=va, fontsize=12,
+                    color="#1e293b", zorder=6,
+                    bbox={"facecolor": "white", "edgecolor": "#e2e8f0", "alpha": 0.95, "pad": 5})
     if not detail:
         ax.plot([0, g.d], [0, 0], ":", color="#64748b", linewidth=1)
         ax.scatter([0], [0], color="#64748b", s=15)
@@ -140,12 +165,15 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
     ax.annotate("B", (g.d, 0), xytext=(3, 9), textcoords="offset points")
     if detail:
         # Common physical extent across frames, with the origin following B.
-        extent = 1.15*max(c.view_factors.geometry.r + scale*float(np.max(np.abs(arrow_display_values(c, representation, length_contrast)))) for c in cases)
+        extent = 1.5*max(c.view_factors.geometry.r + scale*float(np.max(np.abs(arrow_display_values(c, representation, length_contrast)))) for c in cases)
         ax.set(xlim=(g.d-extent, g.d+extent), ylim=(-extent, extent))
     else:
         ax.set(xlim=(-1.12*g.R, 1.12*g.R), ylim=(-1.12*g.R, 1.12*g.R))
-    ax.set(xlabel="x (m)", ylabel="y (m)")
     ax.set_aspect("equal", adjustable="box")
-    ax.grid(alpha=0.15)
+    if detail:
+        ax.set_axis_off()
+    else:
+        ax.set(xlabel="x (m)", ylabel="y (m)")
+        ax.grid(alpha=0.15)
     fig.colorbar(collection, ax=ax, shrink=0.75, label=color_label)
     return fig

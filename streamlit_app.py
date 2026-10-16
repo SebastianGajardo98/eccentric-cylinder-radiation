@@ -63,25 +63,29 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
         deviation = metrics["max_deviation_percent"]
         st.metric("Maximum deviation from mean", "Undefined" if deviation is None else f"{deviation:.3f}%", border=True)
         st.metric("Heat from B per length", f"{metrics['heat_inner_w_m']:.2f} W/m", border=True)
-    with st.expander("Flux arrow display", expanded=True):
+    diagram = st.segmented_control("Diagram view", ["Cylinder B detail", "Enclosure"],
+                                   default="Cylinder B detail", key=f"{key}_focused_diagram")
+    with st.expander("Flux arrow display", expanded=False):
         fields = st.columns(2)
         representation_label = fields[0].selectbox("Arrows represent", ["Net heat flux", "Deviation from mean"], key=f"{key}_arrow_mode")
-        diagram = fields[1].selectbox("Diagram view", ["Enclosure", "Cylinder B detail"], key=f"{key}_diagram")
-        contrast = st.slider("Arrow length contrast (1 = proportional to q)", 1, 10, 1,
-                             key=f"{key}_length_contrast", disabled=representation_label != "Net heat flux",
+        arrow_count = fields[1].select_slider("Visible arrows (display only)", [4, 8, 12, 16, 24, 32], value=4, key=f"{key}_fixed_arrow_count")
+        contrast = st.slider("Arrow length contrast (1 = proportional to q)", 1, 10, 6,
+                             key=f"{key}_visual_length_contrast", disabled=representation_label != "Net heat flux",
                              help="Values above 1 visually emphasize differences. Colors and the angular chart still show the actual calculated flux.")
-        arrow_count = st.select_slider("Visible arrows (display only)", [8, 16, 24, 32], value=16, key=f"{key}_arrow_count")
         reference = st.toggle("Show uniform mean-flux reference", value=True, key=f"{key}_uniform_reference", disabled=representation_label != "Net heat flux")
     representation = "net" if representation_label == "Net heat flux" else "deviation"
-    left, right = st.columns([1, 1.2])
-    with left:
-        fig = geometry_chart(result, color_domain, representation=representation,
-                             detail=diagram == "Cylinder B detail", arrow_count=arrow_count,
-                             uniform_reference=reference, scale_results=scale_results,
-                             length_contrast=contrast)
-        st.pyplot(fig, width="stretch")
-        plt.close(fig)
-    with right:
+    if representation == "net" and contrast > 1:
+        st.caption(f"Lengths emphasize differences (contrast {contrast}); colors and labels show the calculated flux. Set contrast to 1 for proportional lengths.")
+    fig = geometry_chart(result, color_domain, representation=representation,
+                         detail=diagram == "Cylinder B detail", arrow_count=arrow_count,
+                         uniform_reference=reference, scale_results=scale_results,
+                         length_contrast=contrast)
+    st.pyplot(fig, width="stretch")
+    plt.close(fig)
+    st.caption("Arrows align with the top, right, bottom and left of B. Their values are interpolated between segment averages for display; adding arrows does not refine the numerical model.")
+    if diagram == "Cylinder B detail":
+        st.caption("Close-up centered on B. Choose Enclosure above to see the offset and both cylinder walls.")
+    with st.expander("Angular flux profile", expanded=False):
         quantity = "flux_w_m2" if representation == "net" else "deviation_percent"
         chart = profile_chart(flux_table(result), quantity=quantity)
         baseline = metrics["mean_inner_flux_w_m2"] if representation == "net" else 0.0
@@ -89,10 +93,8 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
         st.altair_chart(chart+rule, width="stretch")
         st.caption("Each plotted flux is a segment average. The connecting line guides the eye. Angle 0° faces the narrowest gap; 180° faces the widest.")
     if representation == "net":
-        st.caption("Arrows show net surface heat flux normal to B, not individual radiation rays. Longer arrows mean more net heat per unit area. The dashed contour marks where equal arrows at the mean flux would end.")
-        st.caption(f"Actual calculated flux: {metrics['min_inner_flux_w_m2']:.2f} to {metrics['max_inner_flux_w_m2']:.2f} W/m². The arrows stop according to flux magnitude; forcing every tip to A would encode gap distance instead of flux.")
-        if contrast > 1:
-            st.info(f"Visual emphasis only: arrow lengths use contrast power {contrast} and are not proportional to q. Colors, flux values and the angular chart are unmodified. Set contrast to 1 for proportional arrows.")
+        st.caption("Arrows show net surface heat flux normal to B. Longer arrows mean more net heat per unit area. The dashed contour marks where equal arrows at the mean flux would end.")
+        st.caption(f"Calculated segment averages: minimum {metrics['min_inner_flux_w_m2']:.2f}, maximum {metrics['max_inner_flux_w_m2']:.2f} W/m².")
     else:
         st.caption("Deviation arrows show (local flux − mean flux) / mean flux: outward is above average, inward is below average. An inward deviation arrow does not imply that the net heat flows inward.")
     if scale_results is None:
