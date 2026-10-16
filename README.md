@@ -8,6 +8,8 @@ Assignment: Heat and Mass Transfer (Radiative Heat Transfer), Sebastian Alberto 
 
 The outer cylinder has radius R = 1 m and temperature T_A = 303.15 K (30 degrees Celsius). The inner cylinder has radius 0 < r < R, temperature T_B > T_A, and center offset 0 <= d < R - r. Both surfaces have uniform emissivities 0 < epsilon_A, epsilon_B <= 1. All areas and heat rates are expressed per unit axial length.
 
+The horizontal-position slider moves B left or right through the concentric position. Its signed value is x_B/(R-r); d = abs(x_B) remains the center distance. Geometry(side="left") places B at (-d, 0), while the default side="right" places it at (+d, 0). View factors and surface flux are calculated at that position. The eccentricity study retains the selected side, and CSV exports include both d and the signed center coordinate.
+
 The planned visualization animates parameter changes through steady-state solutions. It does not model transient heating: both cylinder temperatures are prescribed by the assignment.
 
 ## Numerical model

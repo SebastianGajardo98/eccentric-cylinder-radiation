@@ -84,7 +84,7 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
     plt.close(fig)
     st.caption("The default eight arrows show the four axes and four diagonals of B. Values are interpolated between segment averages for display; adding arrows does not refine the numerical model.")
     g = result.view_factors.geometry
-    st.caption(f"Actual geometry: R = {g.R:.3f} m, r = {g.r:.3f} m, d = {g.d:.3f} m. Both circles share the same length scale. The dotted line joins their centers; the space between the walls is a vacuum.")
+    st.caption(f"Actual geometry: R = {g.R:.3f} m, r = {g.r:.3f} m, center distance d = {g.d:.3f} m, B position x = {g.center_x:+.3f} m. Both circles share the same length scale. The dotted line joins their centers; the space between the walls is a vacuum.")
     if representation == "net":
         st.write(f"**Flux on B:** minimum **{metrics['min_inner_flux_w_m2']:.2f} W/m²**, maximum **{metrics['max_inner_flux_w_m2']:.2f} W/m²**.")
     with st.expander("Angular flux profile — quantify the nonuniformity on B", expanded=True):
@@ -93,7 +93,7 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
         baseline = metrics["mean_inner_flux_w_m2"] if representation == "net" else 0.0
         rule = alt.Chart(pd.DataFrame({quantity: [baseline]})).mark_rule(strokeDash=[5, 4], color="#64748b").encode(y=f"{quantity}:Q")
         st.altair_chart(chart+rule, width="stretch")
-        st.caption("Each plotted flux is a segment average. The connecting line guides the eye. Angle 0° faces the narrowest gap; 180° faces the widest.")
+        st.caption("Each plotted flux is a segment average. The connecting line guides the eye. Angles stay fixed: 0° right, 90° top, 180° left, 270° bottom.")
     if representation == "net":
         st.caption("Arrows show net surface heat flux normal to B. At contrast 1 their lengths are proportional to q. Colors and the profile reveal small variations without altering the geometry.")
         if reference:
@@ -112,6 +112,7 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
 def summary_row(result):
     g = result.view_factors.geometry
     return {"n_outer": g.n_outer, "n_inner": g.n_inner, "r_m": g.r, "d_m": g.d,
+            "center_b_x_m": g.center_x, "position_side": g.side,
             "integration_tolerance": result.view_factors.integration_tolerance,
             **result.metrics, **result.view_factors.diagnostics}
 
@@ -125,8 +126,12 @@ with st.sidebar:
     controls = st.container() if automatic else st.form("parameters")
     with controls:
         radius = st.slider("Inner radius r (m)", 0.1, 0.8, 0.4, 0.05, key="radius")
-        eccentricity = st.slider("Normalized eccentricity e", 0.0, 0.95, 0.5, 0.05,
-                                 help="e = d/(R-r). Zero is concentric; one is contact.", key="eccentricity")
+        if "horizontal_position" not in st.session_state:
+            st.session_state.horizontal_position = st.session_state.get("eccentricity", 0.5)
+        position = st.slider("Horizontal position of B", -0.95, 0.95, step=0.05,
+                             help="Negative = left, zero = centered, positive = right. This is x_B/(R-r); absolute value 1 would mean contact.",
+                             key="horizontal_position")
+        st.caption(f"Left ← 0 → Right · Normalized eccentricity e = {abs(position):.2f}")
         temperature = st.slider("Inner temperature (°C)", 31.0, 600.0, 200.0, 1.0, key="temperature")
         epsilon_a = st.slider("Outer emissivity", 0.05, 1.0, 0.6, 0.05, key="epsilon_a")
         epsilon_b = st.slider("Inner emissivity", 0.05, 1.0, 0.8, 0.05, key="epsilon_b")
@@ -147,7 +152,8 @@ with st.sidebar:
     elif quality == "Study":
         st.caption("Recommended for the documented study cases; other parameter combinations may need their own convergence check." if selection else "Study discretization is currently being reviewed.")
 
-g = Geometry(r=radius, d=eccentricity * (1-radius), n_outer=n_outer, n_inner=n_inner)
+g = Geometry(r=radius, d=abs(position) * (1-radius),
+             side="left" if position < 0 else "right", n_outer=n_outer, n_inner=n_inner)
 thermal = {"temperature_outer_k": 303.15, "temperature_inner_k": temperature + 273.15,
            "emissivity_outer": epsilon_a, "emissivity_inner": epsilon_b}
 signature = (g, tolerance, tuple(thermal.values()))

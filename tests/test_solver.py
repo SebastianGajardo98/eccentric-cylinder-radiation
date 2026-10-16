@@ -35,8 +35,24 @@ def test_eccentric_gray_enclosure_conserves_heat_and_has_nonuniform_inner_flux()
     assert result.metrics["max_deviation_percent"] > 0.1
 
 
+def test_moving_to_the_opposite_side_mirrors_view_factors_and_surface_flux():
+    right = calculate_view_factors(Geometry(r=0.4, d=0.3, n_outer=12, n_inner=8))
+    left = calculate_view_factors(Geometry(r=0.4, d=0.3, n_outer=12, n_inner=8, side="left"))
+    assert left.geometry.center_x == -right.geometry.center_x
+    # Reflection across the y-axis maps theta to pi-theta, for both surfaces.
+    outer = (6-np.arange(12)-1) % 12
+    inner = (4-np.arange(8)-1) % 8
+    permutation = np.concatenate([outer, 12+inner])
+    np.testing.assert_allclose(left.factors[np.ix_(permutation, permutation)], right.factors, atol=2e-7)
+    q_right, q_left = solve_radiation(right), solve_radiation(left)
+    np.testing.assert_allclose(q_left.inner_flux[inner], q_right.inner_flux, rtol=2e-7)
+    assert q_left.metrics["energy_imbalance_relative"] < 2e-7
+    assert q_left.metrics["mean_inner_flux_w_m2"] == pytest.approx(q_right.metrics["mean_inner_flux_w_m2"], rel=2e-7)
+    assert q_left.metrics["max_deviation_percent"] == pytest.approx(q_right.metrics["max_deviation_percent"], rel=2e-6)
+
+
 @pytest.mark.parametrize("options", [{"r": 1}, {"d": 0.7}, {"d": -0.1},
-                                     {"n_inner": 3}, {"n_outer": 8.5}, {"r": np.nan}])
+                                     {"n_inner": 3}, {"n_outer": 8.5}, {"r": np.nan}, {"side": "up"}])
 def test_invalid_geometry_is_rejected(options):
     with pytest.raises(ValueError):
         Geometry(**options)

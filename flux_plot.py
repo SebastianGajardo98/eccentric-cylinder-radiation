@@ -81,20 +81,21 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
                    arrow_count=16, uniform_reference=True, scale_results=None,
                    length_contrast=1):
     g = result.view_factors.geometry
+    center_x = g.center_x
     cases = [result] if scale_results is None else scale_results
     values = displayed_field(result, representation)
     scale = arrow_length_scale(cases, representation, detail, length_contrast)
     arcs = []
     for i in range(g.n_inner):
         angles = np.linspace(i*2*np.pi/g.n_inner, (i+1)*2*np.pi/g.n_inner, 8)
-        arcs.append(np.column_stack([g.d+g.r*np.cos(angles), g.r*np.sin(angles)]))
+        arcs.append(np.column_stack([center_x+g.r*np.cos(angles), g.r*np.sin(angles)]))
     fig, ax = plt.subplots(figsize=(9, 6.6 if detail else 7.2), layout="constrained")
     theta = np.linspace(0, 2*np.pi, 361)
     if not detail:
         ax.plot(g.R*np.cos(theta), g.R*np.sin(theta), color="#475569", linewidth=2.5)
         ax.annotate(f"A: outer cylinder, R = {g.R:g} m", (0, g.R),
                     xytext=(0, 1.07*g.R), ha="center", va="bottom", fontsize=11)
-    ax.fill(g.d+g.r*np.cos(theta), g.r*np.sin(theta), facecolor="#f8fafc", zorder=1)
+    ax.fill(center_x+g.r*np.cos(theta), g.r*np.sin(theta), facecolor="#f8fafc", zorder=1)
 
     if representation == "deviation":
         limit = max(max(float(np.max(np.abs(displayed_field(c, representation)))) for c in cases), 1e-3)
@@ -115,7 +116,7 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
     angles, sampled_values = arrow_samples(result, representation, arrow_count)
     lengths = arrow_display_values(result, representation, length_contrast, values=sampled_values)
     normals = np.column_stack([np.cos(angles), np.sin(angles)])
-    sources = np.array([g.d, 0]) + g.r*normals
+    sources = np.array([center_x, 0]) + g.r*normals
     vectors = scale*lengths[:, None]*normals
     arrows = ax.quiver(sources[:, 0], sources[:, 1], vectors[:, 0], vectors[:, 1],
                        angles="xy", scale_units="xy", scale=1, pivot="tail",
@@ -141,7 +142,7 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
     mean = result.metrics["mean_inner_flux_w_m2"]
     if representation == "net" and uniform_reference and scale > 0:
         radius = g.r+scale*mean
-        ax.plot(g.d+radius*np.cos(theta), radius*np.sin(theta), "--",
+        ax.plot(center_x+radius*np.cos(theta), radius*np.sin(theta), "--",
                 color="#64748b", linewidth=1, label="Uniform mean-flux tips", zorder=2)
         ax.legend(loc="lower center", fontsize=9, framealpha=0.9)
     if detail:
@@ -161,23 +162,23 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
                     color="#1e293b", zorder=6,
                     bbox={"facecolor": "white", "edgecolor": "#e2e8f0", "alpha": 0.95, "pad": 5})
     if not detail:
-        ax.plot([0, g.d], [0, 0], ":", color="#64748b", linewidth=1)
-        ax.scatter([0, g.d], [0, 0], color="#64748b", s=15)
+        ax.plot([0, center_x], [0, 0], ":", color="#64748b", linewidth=1)
+        ax.scatter([0, center_x], [0, 0], color="#64748b", s=15)
         if g.d > 1e-10:
             ax.annotate("$O_A$", (0, 0), xytext=(-9, -16), textcoords="offset points", fontsize=9)
-            ax.annotate("$O_B$", (g.d, 0), xytext=(4, -16), textcoords="offset points", fontsize=9)
+            ax.annotate("$O_B$", (center_x, 0), xytext=(4, -16), textcoords="offset points", fontsize=9)
         else:
             ax.annotate("$O_A = O_B$", (0, 0), xytext=(4, -16), textcoords="offset points", fontsize=9)
-        ax.text(g.d, 0.35*g.r, f"B\nr = {g.r:g} m", ha="center", va="center", fontsize=11)
-        ax.text(0.04, 0.08, f"Center offset d = {g.d:.3f} m", transform=ax.transAxes,
+        ax.text(center_x, 0.35*g.r, f"B\nr = {g.r:g} m", ha="center", va="center", fontsize=11)
+        ax.text(0.04, 0.08, f"Center distance d = {g.d:.3f} m", transform=ax.transAxes,
                 fontsize=10, bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.9, "pad": 3})
     else:
-        ax.scatter([g.d], [0], color="#64748b", s=15)
-        ax.annotate("B", (g.d, 0), xytext=(3, 9), textcoords="offset points")
+        ax.scatter([center_x], [0], color="#64748b", s=15)
+        ax.annotate("B", (center_x, 0), xytext=(3, 9), textcoords="offset points")
     if detail:
         # Common physical extent across frames, with the origin following B.
         extent = 1.5*max(c.view_factors.geometry.r + scale*float(np.max(np.abs(arrow_display_values(c, representation, length_contrast)))) for c in cases)
-        ax.set(xlim=(g.d-extent, g.d+extent), ylim=(-extent, extent))
+        ax.set(xlim=(center_x-extent, center_x+extent), ylim=(-extent, extent))
     else:
         ax.set(xlim=(-1.15*g.R, 1.15*g.R), ylim=(-1.15*g.R, 1.15*g.R))
     ax.set_aspect("equal", adjustable="box")

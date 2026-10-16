@@ -23,15 +23,23 @@ class Geometry:
     n_outer: int = 48
     n_inner: int = 32
     R: float = 1.0
+    side: str = "right"
 
     def __post_init__(self):
         if not np.all(np.isfinite([self.R, self.r, self.d])):
             raise ValueError("R, r and d must be finite.")
         if not (0 < self.r < self.R and 0 <= self.d < self.R - self.r):
             raise ValueError("Require 0 < r < R and 0 <= d < R - r.")
+        if self.side not in ("left", "right"):
+            raise ValueError("Side must be 'left' or 'right'.")
         for count in (self.n_outer, self.n_inner):
             if isinstance(count, bool) or not isinstance(count, Integral) or count < 4:
                 raise ValueError("Each segment count must be an integer >= 4.")
+
+    @property
+    def center_x(self):
+        """Signed horizontal position; d remains the nonnegative center distance."""
+        return -self.d if self.side == "left" else self.d
 
 
 @dataclass
@@ -75,10 +83,10 @@ def calculate_view_factors(geometry: Geometry, integration_tolerance=1e-8) -> Vi
     edges_b = TAU * np.arange(g.n_inner) / g.n_inner
     endpoints = np.vstack([
         g.R * np.column_stack([np.cos(edges_a), np.sin(edges_a)]),
-        np.array([g.d, 0]) + g.r * np.column_stack([np.cos(edges_b), np.sin(edges_b)]),
+        np.array([g.center_x, 0]) + g.r * np.column_stack([np.cos(edges_b), np.sin(edges_b)]),
     ])
     total = g.n_outer + g.n_inner
-    center_b = np.array([g.d, 0.0])
+    center_b = np.array([g.center_x, 0.0])
 
     def point_factors(theta, outer):
         radial = np.array([np.cos(theta), np.sin(theta)])

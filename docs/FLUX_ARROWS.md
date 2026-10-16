@@ -2,7 +2,9 @@
 
 ## Geometry from the assignment
 
-The main diagram always shows the complete cross-section: cylinder B is inside cylinder A, with both circles drawn at the same physical scale. A has radius R = 1 m and center O_A = (0, 0); B has radius r and center O_B = (d, 0). The dotted straight line joins the centers. The space between the walls is a vacuum. Moving B changes the offset d while preserving the circular surfaces and their radii.
+The main diagram always shows the complete cross-section: cylinder B is inside cylinder A, with both circles drawn at the same physical scale. A has radius R = 1 m and center O_A = (0, 0); B has radius r and center O_B = (x_B, 0), with x_B = +d on the right or -d on the left. The dotted straight line joins the centers. The space between the walls is a vacuum. Moving B changes its position while preserving the circular surfaces and their radii.
+
+Use **Horizontal position of B**: negative moves left, zero centers B, and positive moves right. The control represents x_B/(R-r). The distance d = abs(x_B) and normalized eccentricity e = abs(x_B)/(R-r) remain nonnegative. Angles remain fixed relative to the screen: 0 degrees right, 90 top, 180 left and 270 bottom. Mirroring the position mirrors the flux pattern; the scalar mean and nonuniformity measures stay the same at equal distance.
 
 The parameters satisfy r < R and d < R-r, so the surfaces do not intersect. The concentric case d = 0 is available as a reference. The assignment concerns infinitely long cylinders; this drawing is a transverse cross-section, and heat rates are reported per unit axial length.
 

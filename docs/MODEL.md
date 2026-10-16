@@ -4,7 +4,9 @@
 
 The two cylinders are infinitely long, isothermal, opaque, diffuse-gray surfaces. Their gap is a vacuum, with no participating medium, conduction, or convection. Temperatures and emissivities are uniform on each cylinder. Prescribed temperatures mean that there is no transient temperature equation.
 
-The center of A is (0, 0), radius R. The center of B is (d, 0), radius r. The surface of A facing the vacuum has inward normals; B has outward normals. Angles are measured counterclockwise from the positive x-axis about each cylinder's own center. The narrowest gap faces theta_B = 0; the widest faces theta_B = pi.
+The center of A is (0, 0), radius R. The center of B is (x_B, 0), radius r, where x_B = +d on the right or -d on the left. The assignment's center distance d = abs(x_B) remains nonnegative and less than R-r. The signed slider controls x_B/(R-r); the normalized eccentricity is e = d/(R-r). Moving from +d to -d reflects the geometry and flux profile, preserving scalar heat rates and nonuniformity measures.
+
+The surface of A facing the vacuum has inward normals; B has outward normals. Angles are measured counterclockwise from the fixed positive x-axis about each cylinder's own center. For B on the right, the narrowest gap faces theta_B = 0 and the widest theta_B = pi; on the left these swap. In the concentric reference case no direction has a narrower gap.
 
 Divide A and B into N_A and N_B equal angular arcs. Areas per unit axial length are a_A = 2 pi R/N_A and a_B = 2 pi r/N_B. Retain the circular arcs rather than approximating their geometry with polygon chords. Approximate radiosity as constant on each arc.
 
