@@ -68,6 +68,8 @@ Independent refinement, qualification, temperature-scaling checks, and a further
 
 [Reading the flux arrows](docs/FLUX_ARROWS.md) explains the net-flux and signed-deviation views. The visible-arrow count affects the diagram only. Single-case diagrams fit their scale; playback locks the scale across all cases. Arrow glyphs represent net surface flux, not individual radiation rays.
 
+Arrow length contrast defaults to 1 (proportional to q). Higher values emphasize variations visually and are clearly labeled as nonproportional; physical flux colors, min/max values, plots, and exports stay unchanged. Arrows are not forced to terminate on the outer wall because their lengths would then describe gap distance rather than flux.
+
 The view-factor matrix export orders outer segments first, then inner segments, with zero-based index labels. Full parameter and flux exports include physical parameters and diagnostics.
 
 ## Status and remaining work

@@ -1,6 +1,6 @@
 # Reading the surface-flux arrows
 
-The arrows visualize the assignment's local net heat-flux density on cylinder B. Each arrow is attached to a sampled surface segment midpoint and points along the local surface normal. Arrow length is proportional to the selected quantity; the display scale is shown above the drawing.
+The arrows visualize the assignment's local net heat-flux density on cylinder B. Each arrow is attached to a sampled surface segment midpoint and points along the local surface normal. At length contrast 1, arrow length is proportional to the selected quantity; the display scale is shown above the drawing. Higher contrast settings are explicitly labeled visual emphasis, not proportional physical lengths.
 
 ## Net heat flux
 
@@ -26,10 +26,18 @@ This view makes small variations easier to inspect without presenting magnified 
 
 ## Display and comparison
 
+Every arrow should not be stretched to touch cylinder A. In that construction its length would encode the local distance to A, regardless of the calculated flux. Here all arrows use one common scale. The smallest and largest physical flux values are printed on the diagram.
+
+For a clearer qualitative view, increase **Arrow length contrast (1 = proportional to q)** and optionally choose **Cylinder B detail**. The net-flux drawing then uses the signed mapping `abs(q_mean) * sign(q_i) * (abs(q_i)/abs(q_mean))**contrast` before fitting the common display scale. This preserves the flux ordering, its sign, and equal arrows for a uniform field; it exaggerates spatial variations without creating false inward arrows. There is no individual-arrow clipping. The setting has no effect on the signed-deviation view.
+
+Whenever contrast is greater than 1, the diagram states that lengths are not proportional to q and omits the linear W/m^2 arrow key. Color, numerical min/max, the angular graph, and all exported numerical results retain the physical q values. The dashed reference still corresponds to the actual mean because the length mapping fixes q = q_mean. Set contrast back to 1 for quantitative comparisons by arrow length.
+
+Contrast 1 remains the default. Emphasis is defined around each case's own mean. For fixed geometry and emissivities the emphasized lengths retain temperature scaling, but arbitrary geometry cases with different means must not be compared quantitatively by emphasized lengths. Use contrast 1, actual flux colors, or numerical values for those comparisons.
+
 Choose Enclosure to retain both cylinders, or Cylinder B detail for a larger view of the inner surface. The visible-arrow setting samples the already calculated segment fluxes; it does not change the solver's discretization.
 
 A single-case view fits one common arrow scale to that view. It never rescales or truncates individual arrows. In enclosure view the global minimum gap limits the arrow length so glyphs stay inside A; the detail view removes that geometric restriction.
 
-All cases in parameter playback use one shared arrow scale, one shared detail-view extent, and one shared color scale. Thus arrow lengths can be compared across playback frames, including temperature changes. Separate single-case views can have different fitted scales: read the reference key rather than comparing screen lengths across them.
+All cases in parameter playback use one shared drawing scale, one shared detail-view extent, and one shared color scale. At contrast 1, arrow lengths can be compared quantitatively across playback frames, including temperature changes. Emphasized lengths instead highlight spatial variation within each frame. Separate single-case views can have different fitted scales: read the reference key rather than comparing screen lengths across them.
 
 The physical solver, numerical results, selected discretization and existing analytical-comparison scope are unchanged by this visualization.

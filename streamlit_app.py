@@ -67,6 +67,9 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
         fields = st.columns(2)
         representation_label = fields[0].selectbox("Arrows represent", ["Net heat flux", "Deviation from mean"], key=f"{key}_arrow_mode")
         diagram = fields[1].selectbox("Diagram view", ["Enclosure", "Cylinder B detail"], key=f"{key}_diagram")
+        contrast = st.slider("Arrow length contrast (1 = proportional to q)", 1, 10, 1,
+                             key=f"{key}_length_contrast", disabled=representation_label != "Net heat flux",
+                             help="Values above 1 visually emphasize differences. Colors and the angular chart still show the actual calculated flux.")
         arrow_count = st.select_slider("Visible arrows (display only)", [8, 16, 24, 32], value=16, key=f"{key}_arrow_count")
         reference = st.toggle("Show uniform mean-flux reference", value=True, key=f"{key}_uniform_reference", disabled=representation_label != "Net heat flux")
     representation = "net" if representation_label == "Net heat flux" else "deviation"
@@ -74,7 +77,8 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
     with left:
         fig = geometry_chart(result, color_domain, representation=representation,
                              detail=diagram == "Cylinder B detail", arrow_count=arrow_count,
-                             uniform_reference=reference, scale_results=scale_results)
+                             uniform_reference=reference, scale_results=scale_results,
+                             length_contrast=contrast)
         st.pyplot(fig, width="stretch")
         plt.close(fig)
     with right:
@@ -86,9 +90,17 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
         st.caption("Each plotted flux is a segment average. The connecting line guides the eye. Angle 0° faces the narrowest gap; 180° faces the widest.")
     if representation == "net":
         st.caption("Arrows show net surface heat flux normal to B, not individual radiation rays. Longer arrows mean more net heat per unit area. The dashed contour marks where equal arrows at the mean flux would end.")
+        st.caption(f"Actual calculated flux: {metrics['min_inner_flux_w_m2']:.2f} to {metrics['max_inner_flux_w_m2']:.2f} W/m². The arrows stop according to flux magnitude; forcing every tip to A would encode gap distance instead of flux.")
+        if contrast > 1:
+            st.info(f"Visual emphasis only: arrow lengths use contrast power {contrast} and are not proportional to q. Colors, flux values and the angular chart are unmodified. Set contrast to 1 for proportional arrows.")
     else:
         st.caption("Deviation arrows show (local flux − mean flux) / mean flux: outward is above average, inward is below average. An inward deviation arrow does not imply that the net heat flows inward.")
-    st.caption("Arrow scale is fitted to this view." if scale_results is None else "All playback cases share one arrow scale and one detail-view extent, so arrow lengths can be compared across frames.")
+    if scale_results is None:
+        st.caption("Arrow scale is fitted to this view.")
+    elif representation == "net" and contrast > 1:
+        st.caption("Playback shares a drawing scale, but contrast emphasizes variation around each case's own mean. Compare colors and numerical flux values between cases; use contrast 1 for proportional length comparisons.")
+    else:
+        st.caption("All playback cases share one arrow scale and one detail-view extent, so arrow lengths can be compared across frames.")
     g = result.view_factors.geometry
     st.caption(f"Minimum gap: {g.R-g.r-g.d:.3f} m · Maximum gap: {g.R-g.r+g.d:.3f} m · Offset d: {g.d:.3f} m")
 

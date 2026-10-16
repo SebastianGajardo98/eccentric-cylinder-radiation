@@ -24,7 +24,24 @@ def displayed_field(result, representation):
     return result.inner_flux
 
 
-def arrow_length_scale(results, representation, detail):
+def arrow_display_values(result, representation, length_contrast=1):
+    """Optionally emphasize spatial differences without reversing flux signs.
+
+    This changes glyph lengths only. The normal representation is recovered at
+    power 1. For positive q and positive mean the mapping is
+    mean * (q/mean)**power. It preserves order, uniformity and the flux sign;
+    color and numerical charts always use the untransformed physical field.
+    """
+    values = displayed_field(result, representation)
+    if not 1 <= length_contrast <= 10:
+        raise ValueError("Length contrast must lie between 1 and 10.")
+    if representation != "net" or length_contrast == 1 or result.metrics["max_deviation_percent"] is None:
+        return values
+    mean = abs(result.metrics["mean_inner_flux_w_m2"])
+    return np.sign(values)*mean*(np.abs(values)/mean)**length_contrast
+
+
+def arrow_length_scale(results, representation, detail, length_contrast=1):
     """One linear display scale; no individual arrows are clipped/rescaled.
 
     Fit every case so a shared scale can be used throughout playback. A global
@@ -34,7 +51,7 @@ def arrow_length_scale(results, representation, detail):
     limits = []
     for result in results:
         g = result.view_factors.geometry
-        values = displayed_field(result, representation)
+        values = arrow_display_values(result, representation, length_contrast)
         positive = max(float(values.max()), 0)
         negative = max(float(-values.min()), 0)
         if positive > 1e-10:
@@ -46,11 +63,13 @@ def arrow_length_scale(results, representation, detail):
 
 
 def geometry_chart(result, color_domain=None, *, representation="net", detail=False,
-                   arrow_count=16, uniform_reference=True, scale_results=None):
+                   arrow_count=16, uniform_reference=True, scale_results=None,
+                   length_contrast=1):
     g = result.view_factors.geometry
     cases = [result] if scale_results is None else scale_results
     values = displayed_field(result, representation)
-    scale = arrow_length_scale(cases, representation, detail)
+    lengths = arrow_display_values(result, representation, length_contrast)
+    scale = arrow_length_scale(cases, representation, detail, length_contrast)
     arcs = []
     for i in range(g.n_inner):
         angles = np.linspace(i*2*np.pi/g.n_inner, (i+1)*2*np.pi/g.n_inner, 8)
@@ -80,13 +99,17 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
     angles = result.view_factors.angles[g.n_outer:][indices]
     normals = np.column_stack([np.cos(angles), np.sin(angles)])
     sources = np.array([g.d, 0]) + g.r*normals
-    vectors = scale*values[indices, None]*normals
+    vectors = scale*lengths[indices, None]*normals
     arrows = ax.quiver(sources[:, 0], sources[:, 1], vectors[:, 0], vectors[:, 1],
                        angles="xy", scale_units="xy", scale=1, pivot="tail",
                        color="#334155", width=0.005, headwidth=3.8,
                        headlength=4.5, minlength=0, zorder=4)
     maximum = max(float(np.max(np.abs(displayed_field(c, representation)))) for c in cases)
-    if maximum > 1e-8 and scale > 0:
+    if representation == "net" and length_contrast != 1:
+        ax.text(0.5, 0.98, f"Length contrast {length_contrast:g}: not proportional to q",
+                transform=ax.transAxes, ha="center", va="top", fontsize=9,
+                bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.9, "pad": 2})
+    elif maximum > 1e-8 and scale > 0:
         target = maximum/2
         decade = 10**np.floor(np.log10(target))
         reference = max(x for x in [decade, 2*decade, 5*decade, 10*decade] if x <= target)
@@ -104,6 +127,11 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
         ax.plot(g.d+radius*np.cos(theta), radius*np.sin(theta), "--",
                 color="#64748b", linewidth=1, label="Uniform mean-flux tips", zorder=2)
         ax.legend(loc="lower center", fontsize=8, framealpha=0.9)
+    if representation == "net":
+        ax.text(0.035, 0.075,
+                f"q_min = {result.inner_flux.min():,.1f} W/m²\nq_max = {result.inner_flux.max():,.1f} W/m²",
+                transform=ax.transAxes, ha="left", va="bottom", fontsize=8,
+                bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.85, "pad": 2})
     if not detail:
         ax.plot([0, g.d], [0, 0], ":", color="#64748b", linewidth=1)
         ax.scatter([0], [0], color="#64748b", s=15)
@@ -112,7 +140,7 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
     ax.annotate("B", (g.d, 0), xytext=(3, 9), textcoords="offset points")
     if detail:
         # Common physical extent across frames, with the origin following B.
-        extent = 1.15*max(c.view_factors.geometry.r + scale*float(np.max(np.abs(displayed_field(c, representation)))) for c in cases)
+        extent = 1.15*max(c.view_factors.geometry.r + scale*float(np.max(np.abs(arrow_display_values(c, representation, length_contrast)))) for c in cases)
         ax.set(xlim=(g.d-extent, g.d+extent), ylim=(-extent, extent))
     else:
         ax.set(xlim=(-1.12*g.R, 1.12*g.R), ylim=(-1.12*g.R, 1.12*g.R))
