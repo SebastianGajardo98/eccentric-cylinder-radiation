@@ -11,7 +11,7 @@ import pandas as pd
 import streamlit as st
 
 from radiation import Geometry, calculate_view_factors, solve_radiation
-from flux_plot import geometry_chart
+from flux_plot import geometry_chart, arrow_samples
 
 selection_path = Path(__file__).parent / "results" / "discretization" / "selected.json"
 selection = json.loads(selection_path.read_text(encoding="utf-8")) if selection_path.exists() else None
@@ -56,7 +56,63 @@ def profile_chart(frame, group=None, quantity="flux_w_m2"):
     return chart.properties(height=360)
 
 
-def show_result(result, color_domain=None, scale_results=None, key="simulation"):
+def show_flux_comparison(result, reference_result, key):
+    """Compare actual flux on an explicit axis independent of wall clearance."""
+    _, values = arrow_samples(result, "net", 8)
+    directions = ["Right", "Upper right", "Top", "Upper left", "Left", "Lower left", "Bottom", "Lower right"]
+    frame = pd.DataFrame({"direction": directions, "flux_w_m2": values})
+    reference = None if reference_result is None else reference_result.metrics["mean_inner_flux_w_m2"]
+    if reference is not None:
+        frame["centered_flux_w_m2"] = reference
+        frame["change_w_m2"] = values-reference
+    st.subheader("Compare flux with a fixed scale")
+    with st.container(horizontal=True):
+        for index in [0, 4]:
+            change = None if reference is None else float(values[index]-reference)
+            if change is not None and abs(change) < 1e-6:
+                change = 0.0
+            st.metric(f"{directions[index]} side of B", f"{values[index]:.2f} W/m²",
+                      delta=None if change is None else f"{change:+.2f} W/m² vs centered",
+                      border=True)
+    required = max(float(values.max()), 0.0 if reference is None else reference)
+    scale_key = f"{key}_comparison_axis_max"
+    if scale_key not in st.session_state:
+        st.session_state[scale_key] = 3000.0
+    current_limit = st.session_state[scale_key] or 3000.0
+    with st.expander("Flux comparison scale", expanded=required > current_limit):
+        if st.button("Fit comparison scale to this case", key=f"{key}_fit_flux_axis"):
+            st.session_state[scale_key] = max(100.0, float(100*np.ceil(1.1*required/100)))
+        axis_max = st.number_input("Flux axis maximum (W/m²)", min_value=1.0,
+                                   value=None, step=100.0, key=scale_key)
+        st.caption("This axis stays fixed when parameters change. Fit it or enter a new maximum explicitly to change the display range.")
+    if axis_max is None:
+        st.info("Enter a positive flux axis maximum to display the comparison chart.")
+        return
+    if required > axis_max:
+        st.warning("The calculated flux exceeds the selected comparison range. Increase the flux axis maximum or press Fit comparison scale to this case.")
+    else:
+        base = alt.Chart(frame).encode(
+            y=alt.Y("direction:N", sort=directions, title="Position on B"),
+            x=alt.X("flux_w_m2:Q", title="Net outward heat flux (W/m²)",
+                    scale=alt.Scale(domain=[0, axis_max], nice=False)),
+            tooltip=[alt.Tooltip("direction:N", title="Direction"),
+                     alt.Tooltip("flux_w_m2:Q", title="Actual q (W/m²)", format=".2f")],
+        )
+        chart = base.mark_bar(color="#c65a06", size=18)
+        if reference is not None:
+            ticks = alt.Chart(frame).mark_tick(color="#334155", thickness=3, size=26).encode(
+                x=alt.X("centered_flux_w_m2:Q", scale=alt.Scale(domain=[0, axis_max], nice=False)),
+                y=alt.Y("direction:N", sort=directions),
+                tooltip=[alt.Tooltip("centered_flux_w_m2:Q", title="Centered reference (W/m²)", format=".2f")],
+            )
+            chart = chart+ticks
+        st.altair_chart(chart.properties(height=300), width="stretch")
+        st.caption(f"One unchanged scale: 0–{axis_max:,.0f} W/m². Bar length measures flux, independent of the space between cylinders.")
+    if reference is not None:
+        st.caption(f"Dark marks: numerically calculated centered reference, q = {reference:.2f} W/m², with the same radius, temperatures, emissivities and discretization. Positive changes mean greater flux than when centered.")
+
+
+def show_result(result, color_domain=None, scale_results=None, key="simulation", reference_result=None):
     metrics = result.metrics
     with st.container(horizontal=True):
         st.metric("Mean inner flux", f"{metrics['mean_inner_flux_w_m2']:.2f} W/m²", border=True)
@@ -76,6 +132,8 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
     representation = "net" if representation_label == "Net heat flux" else "deviation"
     if representation == "net" and contrast > 1:
         st.caption(f"Lengths emphasize differences (contrast {contrast}); colors and labels show the calculated flux. Set contrast to 1 for proportional lengths.")
+    if scale_results is None:
+        st.info("Geometry arrows resize to fit the gap. Their screen lengths cannot be compared between positions. Use the fixed-scale flux comparison below.")
     fig = geometry_chart(result, color_domain, representation=representation,
                          detail=False, arrow_count=arrow_count,
                          uniform_reference=reference, scale_results=scale_results,
@@ -87,6 +145,7 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
     st.caption(f"Actual geometry: R = {g.R:.3f} m, r = {g.r:.3f} m, center distance d = {g.d:.3f} m, B position x = {g.center_x:+.3f} m. Both circles share the same length scale. The dotted line joins their centers; the space between the walls is a vacuum.")
     if representation == "net":
         st.write(f"**Flux on B:** minimum **{metrics['min_inner_flux_w_m2']:.2f} W/m²**, maximum **{metrics['max_inner_flux_w_m2']:.2f} W/m²**.")
+    show_flux_comparison(result, reference_result, key)
     with st.expander("Angular flux profile — quantify the nonuniformity on B", expanded=True):
         quantity = "flux_w_m2" if representation == "net" else "deviation_percent"
         chart = profile_chart(flux_table(result), quantity=quantity)
@@ -101,7 +160,7 @@ def show_result(result, color_domain=None, scale_results=None, key="simulation")
     else:
         st.caption("Deviation arrows show (local flux − mean flux) / mean flux: outward is above average, inward is below average. An inward deviation arrow does not imply that the net heat flows inward.")
     if scale_results is None:
-        st.caption("Arrow scale is fitted to this view.")
+        st.caption("Geometry arrows share one proportional scale within this frame. That fitted scale changes with clearance; use the fixed-scale comparison for changes between positions.")
     elif representation == "net" and contrast > 1:
         st.caption("Playback shares a drawing scale, but contrast emphasizes variation around each case's own mean. Compare colors and numerical flux values between cases; use contrast 1 for proportional length comparisons.")
     else:
@@ -174,7 +233,8 @@ if view == "Model and plan (c)":
 if view == "Simulation":
     with st.spinner("Integrating view factors and solving radiosity…"):
         result = calculate(g, tolerance, thermal)
-    show_result(result)
+        centered = calculate(replace(g, d=0.0, side="right"), tolerance, thermal)
+    show_result(result, reference_result=centered)
     with st.expander("Numerical checks and exports"):
         st.json({**result.view_factors.diagnostics, "energy_imbalance_w_m": result.metrics["energy_imbalance_w_m"],
                  "energy_imbalance_relative": result.metrics["energy_imbalance_relative"]})

@@ -181,6 +181,10 @@ def geometry_chart(result, color_domain=None, *, representation="net", detail=Fa
         ax.set(xlim=(center_x-extent, center_x+extent), ylim=(-extent, extent))
     else:
         ax.set(xlim=(-1.15*g.R, 1.15*g.R), ylim=(-1.15*g.R, 1.15*g.R))
+        if scale_results is None:
+            ax.text(0.5, 0.02, "Arrow scale fitted to gap; compare q on the fixed-scale chart",
+                    transform=ax.transAxes, ha="center", va="bottom", fontsize=9,
+                    bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.9, "pad": 2})
     ax.set_aspect("equal", adjustable="box")
     if detail:
         ax.set_axis_off()

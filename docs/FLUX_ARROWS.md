@@ -14,6 +14,16 @@ The default eight arrows start on B and follow its outward surface normals, ever
 
 At the default length contrast 1, all arrow lengths use one proportional scale. A greater positive q gives a longer outward arrow. A genuinely negative q gives an inward arrow. All enclosure arrows are fitted with one scale that keeps them within A; they are not individually stretched to reach the wall. If the actual flux varies only slightly, the proportional lengths should also vary only slightly.
 
+This geometric fit changes between independently calculated positions. Reducing the minimum gap reduces the drawing scale for every arrow, even where q increases. The geometry diagram now states this explicitly. Its arrow lengths must not be compared between positions; use the fixed-scale comparison below it.
+
+## Comparing flux while moving B
+
+The **Compare flux with a fixed scale** chart shows the actual flux in eight fixed directions on one axis, initially 0 to 3000 W/m^2. Moving B does not change that axis. The right/left metrics show current flux and its change from a numerically calculated concentric reference using the same radius, temperatures, emissivities and discretization. Dark ticks in the chart mark this reference. The reference is a numerical case, not an analytical benchmark.
+
+The range changes only when the user edits **Flux axis maximum** or presses **Fit comparison scale to this case**. If values exceed the selected range, the chart is withheld and the scale controls open; it does not silently truncate bars or rescale them. Playback uses its own persistent comparison range. The per-position centered-reference deltas are shown in the main Simulation workspace.
+
+For example, at r = 0.4 m, T_B = 200 C, epsilon_A = 0.6, epsilon_B = 0.8 and Preview discretization, the centered flux is about 1558 W/m^2. With B nearly touching the left wall (normalized position -0.95), the reconstructed right-side flux increases to about 1637 W/m^2 and the left-side flux decreases to about 1301 W/m^2. The far-side increase is about 5 percent, even though both arrows in the fitted geometry diagram become shorter. These are numerical illustration values, not a claim of spatial convergence.
+
 The colored band on B shows the calculated segment-average flux in W/m^2. The visible angular profile and its mean-flux reference quantify the variation. Minimum, maximum and maximum relative deviation are reported numerically. These displays make small differences readable while retaining the real geometry and proportional default arrow lengths.
 
 Arrow values are reconstructed by periodic linear interpolation between segment averages. They are approximate display values, not additional pointwise solver results. Increasing the visible arrow count does not change or refine the numerical discretization. The circumference colors, angular profile and exports retain the original segment averages.
