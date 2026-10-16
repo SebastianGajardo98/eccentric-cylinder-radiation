@@ -6,12 +6,12 @@ import json
 
 import altair as alt
 import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
 import numpy as np
 import pandas as pd
 import streamlit as st
 
 from radiation import Geometry, calculate_view_factors, solve_radiation
+from flux_plot import geometry_chart
 
 selection_path = Path(__file__).parent / "results" / "discretization" / "selected.json"
 selection = json.loads(selection_path.read_text(encoding="utf-8")) if selection_path.exists() else None
@@ -44,57 +44,51 @@ def flux_table(result):
     })
 
 
-def geometry_chart(result, color_domain=None):
-    g = result.view_factors.geometry
-    arcs = []
-    for i, flux in enumerate(result.inner_flux):
-        angles = np.linspace(i * 2 * np.pi / g.n_inner, (i + 1) * 2 * np.pi / g.n_inner, 8)
-        arcs.append(np.column_stack([g.d + g.r*np.cos(angles), g.r*np.sin(angles)]))
-    theta = np.linspace(0, 2 * np.pi, 361)
-    fig, ax = plt.subplots(figsize=(5.5, 5), layout="constrained")
-    ax.plot(g.R*np.cos(theta), g.R*np.sin(theta), color="#64748b", linewidth=1.5)
-    collection = LineCollection(arcs, cmap="inferno", linewidths=6)
-    collection.set_array(result.inner_flux)
-    if color_domain is not None:
-        collection.set_clim(*color_domain)
-    ax.add_collection(collection)
-    ax.plot([0, g.d], [0, 0], ":", color="#64748b", linewidth=1)
-    ax.scatter([0, g.d], [0, 0], color="#64748b", s=15)
-    ax.annotate("A", (0, 0), xytext=(-12, 9), textcoords="offset points")
-    ax.annotate("B", (g.d, 0), xytext=(3, 9), textcoords="offset points")
-    ax.set(xlim=(-1.1*g.R, 1.1*g.R), ylim=(-1.1*g.R, 1.1*g.R), xlabel="x (m)", ylabel="y (m)")
-    ax.set_aspect("equal", adjustable="box")
-    ax.grid(alpha=0.15)
-    fig.colorbar(collection, ax=ax, shrink=0.75, label="Net outward flux (W/m²)")
-    return fig
-
-
-def profile_chart(frame, group=None):
+def profile_chart(frame, group=None, quantity="flux_w_m2"):
+    label = "Deviation from mean (%)" if quantity == "deviation_percent" else "Net outward flux (W/m²)"
     chart = alt.Chart(frame).mark_line(point=True).encode(
         x=alt.X("angle_deg:Q", title="Inner-cylinder angle (degrees)", scale=alt.Scale(domain=[0, 360])),
-        y=alt.Y("flux_w_m2:Q", title="Net outward flux (W/m²)", scale=alt.Scale(zero=False)),
-        tooltip=[alt.Tooltip("angle_deg:Q", format=".1f"), alt.Tooltip("flux_w_m2:Q", format=".3f")],
+        y=alt.Y(f"{quantity}:Q", title=label, scale=alt.Scale(zero=False)),
+        tooltip=[alt.Tooltip("angle_deg:Q", format=".1f"), alt.Tooltip(f"{quantity}:Q", title=label, format=".3f")],
     )
     if group:
         chart = chart.encode(color=alt.Color(f"{group}:N", title="Case"))
     return chart.properties(height=360)
 
 
-def show_result(result, color_domain=None):
+def show_result(result, color_domain=None, scale_results=None, key="simulation"):
     metrics = result.metrics
     with st.container(horizontal=True):
         st.metric("Mean inner flux", f"{metrics['mean_inner_flux_w_m2']:.2f} W/m²", border=True)
         deviation = metrics["max_deviation_percent"]
         st.metric("Maximum deviation from mean", "Undefined" if deviation is None else f"{deviation:.3f}%", border=True)
         st.metric("Heat from B per length", f"{metrics['heat_inner_w_m']:.2f} W/m", border=True)
+    with st.expander("Flux arrow display", expanded=True):
+        fields = st.columns(2)
+        representation_label = fields[0].selectbox("Arrows represent", ["Net heat flux", "Deviation from mean"], key=f"{key}_arrow_mode")
+        diagram = fields[1].selectbox("Diagram view", ["Enclosure", "Cylinder B detail"], key=f"{key}_diagram")
+        arrow_count = st.select_slider("Visible arrows (display only)", [8, 16, 24, 32], value=16, key=f"{key}_arrow_count")
+        reference = st.toggle("Show uniform mean-flux reference", value=True, key=f"{key}_uniform_reference", disabled=representation_label != "Net heat flux")
+    representation = "net" if representation_label == "Net heat flux" else "deviation"
     left, right = st.columns([1, 1.2])
     with left:
-        fig = geometry_chart(result, color_domain)
+        fig = geometry_chart(result, color_domain, representation=representation,
+                             detail=diagram == "Cylinder B detail", arrow_count=arrow_count,
+                             uniform_reference=reference, scale_results=scale_results)
         st.pyplot(fig, width="stretch")
         plt.close(fig)
     with right:
-        st.altair_chart(profile_chart(flux_table(result)), width="stretch")
+        quantity = "flux_w_m2" if representation == "net" else "deviation_percent"
+        chart = profile_chart(flux_table(result), quantity=quantity)
+        baseline = metrics["mean_inner_flux_w_m2"] if representation == "net" else 0.0
+        rule = alt.Chart(pd.DataFrame({quantity: [baseline]})).mark_rule(strokeDash=[5, 4], color="#64748b").encode(y=f"{quantity}:Q")
+        st.altair_chart(chart+rule, width="stretch")
         st.caption("Each plotted flux is a segment average. The connecting line guides the eye. Angle 0° faces the narrowest gap; 180° faces the widest.")
+    if representation == "net":
+        st.caption("Arrows show net surface heat flux normal to B, not individual radiation rays. Longer arrows mean more net heat per unit area. The dashed contour marks where equal arrows at the mean flux would end.")
+    else:
+        st.caption("Deviation arrows show (local flux − mean flux) / mean flux: outward is above average, inward is below average. An inward deviation arrow does not imply that the net heat flows inward.")
+    st.caption("Arrow scale is fitted to this view." if scale_results is None else "All playback cases share one arrow scale and one detail-view extent, so arrow lengths can be compared across frames.")
     g = result.view_factors.geometry
     st.caption(f"Minimum gap: {g.R-g.r-g.d:.3f} m · Maximum gap: {g.R-g.r+g.d:.3f} m · Offset d: {g.d:.3f} m")
 
@@ -145,7 +139,7 @@ view = st.segmented_control("Assignment workspace", ["Simulation", "Discretizati
 
 if view == "Model and plan (c)":
     st.info("Analytical comparisons for part (c) are optional and deferred. Numerical consistency checks remain part of the solver.")
-    documents = {"Implementation plan": "PLAN.md", "Thermodynamic model": "MODEL.md"}
+    documents = {"Implementation plan": "PLAN.md", "Thermodynamic model": "MODEL.md", "Reading the flux arrows": "FLUX_ARROWS.md"}
     if selection:
         documents["Discretization selection"] = "DISCRETIZATION.md"
     document = st.selectbox("Document", list(documents))
@@ -273,6 +267,6 @@ elif view == "Parameters (b)":
             index = st.slider("Case", 0, len(cases)-1, key="playback_frame")
             st.write(f"{parameter}: **{values[index]:.3g}**")
             color_domain = [min(float(x.inner_flux.min()) for x in cases), max(float(x.inner_flux.max()) for x in cases)]
-            show_result(cases[index], color_domain)
+            show_result(cases[index], color_domain, scale_results=cases, key="playback")
 
         playback()

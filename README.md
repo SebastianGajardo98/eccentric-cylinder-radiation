@@ -41,7 +41,7 @@ Define relative flux deviation as (q_B(theta) - mean(q_B)) / mean(q_B), where th
 
 ## Streamlit prototype
 
-- Geometry and local flux: cylinder cross-section colored by surface flux, angular flux curve, parameter controls, and optional parameter-sweep playback.
+- Geometry and local flux: cylinder cross-section with surface-normal flux arrows, flux colors, a uniform mean-flux reference, angular flux curve, parameter controls, and parameter-sweep playback. A signed deviation view highlights departures from uniform flux; a detail view enlarges B.
 - Discretization: convergence plots with separate inner and outer segment counts.
 - Parameter studies: radius, eccentricity, temperature, and emissivity comparisons.
 - Model and plan: derivation, assumptions, numerical residuals, and downloadable results. Analytical comparisons remain a later option.
@@ -65,6 +65,8 @@ See [the assignment plan](docs/PLAN.md), [the model derivation](docs/MODEL.md), 
 [First implementation results](docs/FIRST_RESULTS.md) include a reproducible refinement study. Run `python run_example.py` to regenerate its data.
 
 Independent refinement, qualification, temperature-scaling checks, and a further high-eccentricity reference are reproduced with `run_discretization.py`. Commands and raw results are documented in docs/DISCRETIZATION.md. `results/discretization/selected.json` records the recommended settings and their scope.
+
+[Reading the flux arrows](docs/FLUX_ARROWS.md) explains the net-flux and signed-deviation views. The visible-arrow count affects the diagram only. Single-case diagrams fit their scale; playback locks the scale across all cases. Arrow glyphs represent net surface flux, not individual radiation rays.
 
 The view-factor matrix export orders outer segments first, then inner segments, with zero-based index labels. Full parameter and flux exports include physical parameters and diagnostics.
 
