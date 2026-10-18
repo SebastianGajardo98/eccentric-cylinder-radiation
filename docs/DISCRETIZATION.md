@@ -55,7 +55,7 @@ Each of the 12 distinct geometry points was compared at 96/128 and 192/256 segme
 
 ## Why the inner grid was increased from 64 to 128
 
-The 96/64 candidate passed the first doubling check. However, at e = 0.9 its peak-to-peak range differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.
+At e = 0.9, the coarser 96/64 mesh passes comparison with 192/128. Its peak-to-peak range nevertheless differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.
 
 ## Integration and temperature checks
 
@@ -79,13 +79,12 @@ Across the selected-mesh qualification and reference cases, the maximum relative
 
 The selection is supported at the specified geometry points with emissivities 0.6/0.8. It is not a rigorous error bound, a proof for all continuous intermediate values, or qualification of arbitrary radius/offset/emissivity combinations. The site remains interactive; user-selected cases outside the documented points can be checked using independent refinement.
 
-No analytical benchmark comparisons were added. Part (c) retains them as an optional later step.
+The numerical scope follows the requested assignment requirements. The interpretation of all three required parameter studies is presented in PARAMETERS.md.
 
 Run the following from the repository directory (local caches in tmp/ make repeat runs faster):
 
 ```powershell
 python run_discretization.py --stage independent
-python run_discretization.py --stage qualify --outer 96 --inner 64
 python run_discretization.py --stage worst-case
 python run_discretization.py --stage qualify --outer 96 --inner 128
 python run_discretization.py --stage support --outer 96 --inner 128
@@ -93,4 +92,4 @@ python finalize_discretization.py
 python plot_discretization.py
 ```
 
-Raw case tables, angular profiles, comparison tables, source fingerprints, and selected settings are stored in results/discretization/. The next step is to interpret and present the final parameter-study results using this selected mesh.
+Raw case tables, angular profiles, comparison tables, source fingerprints, and selected settings are stored in results/discretization/. The completed parameter studies use this selected mesh; see PARAMETERS.md and REPORT.md.

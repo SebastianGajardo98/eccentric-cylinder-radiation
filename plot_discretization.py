@@ -15,7 +15,8 @@ def main():
     outer, inner = selected["n_outer"], selected["n_inner"]
     cases = pd.read_csv(directory/"independent_cases.csv")
     comparisons = pd.read_csv(directory/f"qualification_{outer}_{inner}_comparisons.csv")
-    plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False})
+    plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False,
+                         "svg.hashsalt": "eccentric-cylinder-radiation"})
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.5), layout="constrained")
     rows = cases[cases.case.str.startswith("outer_")].sort_values("n_outer")
     axes[0].plot(rows.n_outer, rows.max_deviation_percent, "o-", color="#b45309")
@@ -35,7 +36,7 @@ def main():
     for ax in axes:
         ax.grid(alpha=0.18)
     fig.savefig(directory/"discretization_selection.png", dpi=180)
-    fig.savefig(directory/"discretization_selection.svg")
+    fig.savefig(directory/"discretization_selection.svg", metadata={"Date": None})
     svg_path = directory/"discretization_selection.svg"
     svg_path.write_text("\n".join(line.rstrip() for line in svg_path.read_text(encoding="utf-8").splitlines())+"\n", encoding="utf-8")
     plt.close(fig)

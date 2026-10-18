@@ -36,7 +36,7 @@ def main():
         "maximum_peak_to_peak_change_pp": float(qualification.peak_to_peak_change_pp.max()),
         "solver_sha256": cases.solver_sha256.iloc[0],
         "scope": "Specified geometry points, fixed emissivities 0.6/0.8. Other combinations remain available for exploration and require separate convergence assessment.",
-        "interpretation": "Finite-mesh differences, not rigorous absolute error bounds. Analytical comparisons remain deferred.",
+        "interpretation": "Finite-mesh differences, not rigorous absolute error bounds. The requested scope is the numerical view-factor analysis.",
     }
     (DIRECTORY/"selected.json").write_text(json.dumps(selected, indent=2), encoding="utf-8")
     baseline = cases[(cases.point == "baseline") & (cases.mesh == "candidate")].iloc[0]
@@ -69,7 +69,7 @@ def main():
     for _, row in qualification.iterrows():
         lines.append(f"| {row.point} | {row.e:.3f} | {row.profile_change_percent:.6f} | {row.max_deviation_change_pp:.6f} | {row.peak_to_peak_change_pp:.6f} |")
     lines += ["", "## Why the inner grid was increased from 64 to 128", "",
-              "The 96/64 candidate passed the first doubling check. However, at e = 0.9 its peak-to-peak range differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.", "",
+              "At e = 0.9, the coarser 96/64 mesh passes comparison with 192/128. Its peak-to-peak range nevertheless differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.", "",
               "## Integration and temperature checks", "",
               "At 96/64 baseline resolution, tightening source integration from 1e-6 through 1e-9 changes the nonuniformity metrics by less than 2e-9 percentage points between successive tolerances. At the selected 96/128 resolution, a 1e-8 versus 1e-9 check was also run at the baseline and at e = 0.9.", ""]
     for _, row in integration.iterrows():
@@ -83,15 +83,14 @@ def main():
               f"- Heat from B per unit length: {baseline.heat_inner_w_m:.6f} W/m.", "",
               "## Scope and reproducibility", "",
               "The selection is supported at the specified geometry points with emissivities 0.6/0.8. It is not a rigorous error bound, a proof for all continuous intermediate values, or qualification of arbitrary radius/offset/emissivity combinations. The site remains interactive; user-selected cases outside the documented points can be checked using independent refinement.", "",
-              "No analytical benchmark comparisons were added. Part (c) retains them as an optional later step.", "",
+              "The numerical scope follows the requested assignment requirements. The interpretation of all three required parameter studies is presented in PARAMETERS.md.", "",
               "Run the following from the repository directory (local caches in tmp/ make repeat runs faster):", "",
               "```powershell", "python run_discretization.py --stage independent",
-              "python run_discretization.py --stage qualify --outer 96 --inner 64",
               "python run_discretization.py --stage worst-case",
               "python run_discretization.py --stage qualify --outer 96 --inner 128",
               "python run_discretization.py --stage support --outer 96 --inner 128",
               "python finalize_discretization.py", "python plot_discretization.py", "```", "",
-              "Raw case tables, angular profiles, comparison tables, source fingerprints, and selected settings are stored in results/discretization/. The next step is to interpret and present the final parameter-study results using this selected mesh."]
+              "Raw case tables, angular profiles, comparison tables, source fingerprints, and selected settings are stored in results/discretization/. The completed parameter studies use this selected mesh; see PARAMETERS.md and REPORT.md."]
     Path("docs/DISCRETIZATION.md").write_text("\n".join(lines)+"\n", encoding="utf-8")
     print(json.dumps(selected, indent=2))
 

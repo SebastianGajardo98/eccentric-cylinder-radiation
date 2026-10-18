@@ -1,3 +1,5 @@
+> Historical development notes. The completed submission is docs/REPORT.md; this file is not shown on the website or included in the submission package.
+
 # Implementation and assignment plan
 
 Analytical comparisons in part (c) are optional, following the professor's clarification. They are deferred. Numerical consistency checks are part of implementation, not a commitment to include analytical comparisons in the submission.

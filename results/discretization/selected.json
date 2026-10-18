@@ -106,7 +106,7 @@
   "maximum_profile_change_percent": 0.047166254938732,
   "maximum_max_deviation_change_pp": 0.0454514282223321,
   "maximum_peak_to_peak_change_pp": 0.049711282480402,
-  "solver_sha256": "273b652f7cdb04d31ff319b38b448d1270a76208f0bfcb5a5f25f04497840380",
+  "solver_sha256": "d7215049ac5fbece16e4a613b32ec29ed5aaaa28056abb09556b794f455d6efb",
   "scope": "Specified geometry points, fixed emissivities 0.6/0.8. Other combinations remain available for exploration and require separate convergence assessment.",
-  "interpretation": "Finite-mesh differences, not rigorous absolute error bounds. Analytical comparisons remain deferred."
+  "interpretation": "Finite-mesh differences, not rigorous absolute error bounds. The requested scope is the numerical view-factor analysis."
 }

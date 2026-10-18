@@ -1,79 +1,132 @@
 # Thermodynamic model and numerical method
 
-## Assumptions and geometry
+## 1. Physical assumptions and geometry
 
-The two cylinders are infinitely long, isothermal, opaque, diffuse-gray surfaces. Their gap is a vacuum, with no participating medium, conduction, or convection. Temperatures and emissivities are uniform on each cylinder. Prescribed temperatures mean that there is no transient temperature equation.
+Cylinder A has prescribed radius $R=1$ m and temperature $T_A=303.15$ K (30 °C). Cylinder B has radius $0<r<R$ and prescribed $T_B>T_A$. Both surfaces are infinitely long, isothermal, opaque, diffuse-gray bodies with uniform, temperature-independent emissivities. The gap is a vacuum: only surface-to-surface radiation is included. There is no transient temperature equation because both temperatures are prescribed.
 
-The center of A is (0, 0), radius R. The center of B is (x_B, 0), radius r, where x_B = +d on the right or -d on the left. The assignment's center distance d = abs(x_B) remains nonnegative and less than R-r. The signed slider controls x_B/(R-r); the normalized eccentricity is e = d/(R-r). Moving from +d to -d reflects the geometry and flux profile, preserving scalar heat rates and nonuniformity measures.
+The center of A is $O_A=(0,0)$. The center of B is $O_B=(x_B,0)$, where $x_B=+d$ on the right or $-d$ on the left. The center distance $d=|x_B|$ satisfies $0<d<R-r$ for eccentric cases. The concentric case $d=0$ is retained as a numerical reference. Normalized eccentricity is $e=d/(R-r)$. Angles on B are measured counterclockwise from the fixed positive x-axis: 0° right, 90° top, 180° left and 270° bottom. Mirroring the position mirrors the flux profile without changing scalar heat rates or nonuniformity measures.
 
-The surface of A facing the vacuum has inward normals; B has outward normals. Angles are measured counterclockwise from the fixed positive x-axis about each cylinder's own center. For B on the right, the narrowest gap faces theta_B = 0 and the widest theta_B = pi; on the left these swap. In the concentric reference case no direction has a narrower gap.
+## 2. Surface discretization and units
 
-Divide A and B into N_A and N_B equal angular arcs. Areas per unit axial length are a_A = 2 pi R/N_A and a_B = 2 pi r/N_B. Retain the circular arcs rather than approximating their geometry with polygon chords. Approximate radiosity as constant on each arc.
+Divide A and B into $N_A$ and $N_B$ equal angular arcs, allowing different counts on the two surfaces. Retain their exact circular geometry and approximate radiosity as constant on each arc. The angular widths and areas per unit axial length are
 
-## Diffuse-gray surface equations
+$$
+\Delta\theta_A=\frac{2\pi}{N_A},\qquad
+\Delta\theta_B=\frac{2\pi}{N_B},\qquad
+a_A=R\Delta\theta_A,\qquad a_B=r\Delta\theta_B.
+$$
 
-Let J_i be total outgoing radiosity and G_i incoming irradiation, both in W/m^2. An opaque gray surface absorbs epsilon_i G_i and reflects (1-epsilon_i) G_i. Its thermal emission is epsilon_i sigma T_i^4. Thus
+The $a_i$ have units m² per m of axial length (equivalently m). Flux density $q_i$ has units W/m²; heat rate per axial length $Q'$ has units W/m. These are different quantities, particularly when radius changes. The reported local numerical flux is an arc average, rather than an exact pointwise value.
 
-    J_i = epsilon_i sigma T_i^4 + (1-epsilon_i) G_i
-    G_i = sum_j F_ij J_j
-    [I - diag(1-epsilon) F] J = diag(epsilon) sigma T^4
-    q_i = J_i - G_i
+## 3. Derivation of the diffuse-gray energy balance
 
-Positive q means heat leaves that surface into the vacuum. The hotter B should have positive net flux and A negative flux. The heat rates per unit length are Q'_B = sum_(i on B) a_i q_i and Q'_A = sum_(i on A) a_i q_i, in W/m. A closed, steady enclosure requires Q'_A + Q'_B = 0.
+For an opaque gray surface, absorptivity equals emissivity. Of the irradiation $G_i$ arriving at arc $i$, the absorbed fraction is $\epsilon_i G_i$ and the reflected fraction is $(1-\epsilon_i)G_i$. Thermal emission is $\epsilon_i\sigma T_i^4$, where $\sigma=5.670374419\times10^{-8}$ W/(m² K⁴). Temperatures in this expression are in kelvin.
 
-These equations follow the standard diffuse-gray surface-to-surface model; see [Ansys S2S theory](https://ansyshelp.ansys.com/public/Views/Secured/corp/v242/en/flu_th/flu_th_sec_rad_surface2surface.html).
+The total outgoing radiosity is therefore
 
-## View factors for infinite extrusions
+$$
+J_i=\epsilon_i\sigma T_i^4+(1-\epsilon_i)G_i.
+$$
 
-The 3D differential view-factor kernel is cos(theta_i) cos(theta_j)/(pi s^2). Let rho be transverse separation and z relative axial displacement. Projecting each transverse normal onto the connecting 3D direction supplies a factor rho/s for each cosine. Integrating along the infinite axial direction gives
+The view factor $F_{ij}$ is the fraction of diffuse radiation leaving arc $i$ that reaches arc $j$, accounting for visibility and obstruction by B. Reciprocity gives the incident-radiation relation
 
-    integral_(-infinity)^infinity rho^2 / [pi (rho^2 + z^2)^2] dz = 1/(2 rho).
+$$
+G_i=\sum_jF_{ij}J_j.
+$$
 
-Consequently the 2D exchange kernel per unit length is
+Substituting into the radiosity equation gives one coupled linear equation per surface arc:
 
-    a_i F_ij = integral_(arc i) integral_(arc j)
-               V(p_i,p_j) cos(beta_i) cos(beta_j)/(2 rho) ds_j ds_i,
+$$
+J_i-(1-\epsilon_i)\sum_jF_{ij}J_j=\epsilon_i\sigma T_i^4.
+$$
 
-where beta refers to the transverse normal and V is one for mutually visible points and zero otherwise. The kernel is symmetric, so a_i F_ij = a_j F_ji. B is convex and has no self-view, while A is concave and can see other portions of itself, including parts of the same finite arc.
+With $\mathcal E=\operatorname{diag}(\epsilon_i)$, solve
 
-## Implemented integration
+$$
+\left[I-(I-\mathcal E)F\right]\mathbf J
+=\mathcal E\sigma\mathbf T^4.
+$$
 
-For a fixed source point, parameterize the emission direction by transverse angle phi relative to its vacuum-facing normal. The differential directional weight after integration over axial direction is cos(phi)/2 dphi for -pi/2 < phi < pi/2. Its integral over the emitting half-plane is exactly one.
+The solver uses a linear-system solve, then evaluates irradiation and the net flux from each surface into the vacuum:
 
-Partition the emitting half-plane at bearings to all receiver-arc endpoints and at tangent bearings to the inner cylinder. Inside each resulting interval, the first receiver is unchanged. Use the midpoint ray to identify that receiver through positive ray/circle intersections. The interval weight is exactly
+$$
+q_i=\epsilon_i(\sigma T_i^4-G_i)=J_i-G_i.
+$$
 
-    [sin(phi_upper) - sin(phi_lower)]/2.
+Positive $q_i$ means net heat leaves the body; the hotter B has positive net outward flux. Cylinder A absorbs the net heat transferred from B. Using areas per unit axial length,
 
-Sum the weights for each receiver, then average over the source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, max norm). The result is an arc-averaged view-factor row. Tangent intervals handle the shadow cast by B onto A.
+$$
+Q'_B=\sum_{i\in B}a_iq_i,\qquad
+Q'_A=\sum_{i\in A}a_iq_i,\qquad Q'_A+Q'_B=0.
+$$
 
-Every direction is assigned to its first intersection with the enclosure: closure follows from the directional integral, not row normalization. Rows are integrated independently; reciprocity residuals expose remaining source-integration errors. No view-factor smoothing, symmetrization, or artificial diagonal correction is performed.
+Diffuse-gray radiosity and irradiation are described in the [COMSOL surface-radiation theory reference](https://doc.comsol.com/6.3/doc/com.comsol.help.heat/heat_ug_theory.07.051.html). The sign convention here is positive outward.
 
-## Error checks and limitations
+## 4. View factors for infinitely long cylinders
 
-- The integration tolerance controls source-arc integration and is separate from the radiosity segment count.
-- Closure and reciprocity check geometry integration; they do not prove that piecewise-constant radiosity is sufficiently resolved.
-- Uniform-temperature equilibrium must give zero flux. Total energy balance checks coupling between view factors and radiosity.
-- Compare refined angular profiles to establish segment convergence. Segment-average flux is plotted at segment midpoint angles; it is not an exact pointwise flux.
-- Very narrow gaps and very low emissivities can make error and computation requirements more demanding. Check diagnostics for those cases and do not infer accuracy from a successful solve alone.
-- The current tests exercise representative cases, not every allowed parameter combination.
+The three-dimensional diffuse exchange kernel is $\cos\theta_i\cos\theta_j/(\pi s^2)$. Let $\rho$ be transverse separation and $z$ the relative axial coordinate, so $s^2=\rho^2+z^2$. Each projection of a transverse surface normal contributes $\rho/s$. Integration over the infinite axial direction yields
 
-For context on why closure and reciprocity matter, see [Ansys radiosity diagnostics](https://ansyshelp.ansys.com/public/Views/Secured/corp/v251/en/ans_the/Hlp_G_THE4_7.html). This implementation uses its own circular geometry integration.
+$$
+\int_{-\infty}^{\infty}
+\frac{\rho^2}{\pi(\rho^2+z^2)^2}\,dz=\frac{1}{2\rho}.
+$$
 
-## Nonuniformity measures
+The view-factor exchange per unit axial length is thus
 
-    q_mean = sum_(i on B) a_i q_i / sum_(i on B) a_i
-    delta_i = (q_i - q_mean)/q_mean
-    max_deviation_percent = 100 max_i |delta_i|
-    peak_to_peak_percent = 100 (max_i q_i - min_i q_i)/|q_mean|
+$$
+a_iF_{ij}=\int_{\mathrm{arc}\ i}\int_{\mathrm{arc}\ j}
+V(p_i,p_j)\frac{\cos\beta_i\cos\beta_j}{2\rho}\,ds_j\,ds_i.
+$$
 
-Relative measures are undefined when the mean net flux is effectively zero; the solver then returns None instead of dividing by zero.
+Here $V$ is one only for mutually visible points facing into the vacuum and zero otherwise. Cylinder A has inward-facing vacuum normals; B has outward-facing normals. The kernel is symmetric, giving reciprocity $a_iF_{ij}=a_jF_{ji}$. B is convex and has no self-view. A is concave and can see other parts of itself, including part of the same finite arc.
 
-## Temperature study
+For a source point, let $\phi$ be emission direction relative to its vacuum-facing normal. Integrating the axial direction gives the directional weight $\cos\phi/2$ on $-\pi/2<\phi<\pi/2$. Divide this emitting half-plane at bearings to receiver-arc endpoints and tangent directions to B. The first receiver is unchanged within each resulting interval. Its weight is evaluated exactly as
 
-For fixed geometry and temperature-independent emissivities, the radiosity equations are linear in sigma T_A^4 and sigma T_B^4. Because an isothermal closed enclosure has zero net flux, the inner flux profile has the form
+$$
+\int_{\phi_1}^{\phi_2}\frac{\cos\phi}{2}\,d\phi
+=\frac{\sin\phi_2-\sin\phi_1}{2}.
+$$
 
-    q_B(theta) = sigma (T_B^4 - T_A^4) h(theta; geometry, emissivities).
+A midpoint ray identifies the first intersected receiver in each interval. Tangent directions account for the shadow cast by B. Average the resulting directional factors over each source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, maximum norm). The selected integration tolerance is $10^{-8}$ and is assessed separately from the surface segment counts.
 
-Thus changing T_B changes absolute flux, while normalized nonuniformity should remain unchanged under these assumptions (apart from numerical errors). This is a model consequence to examine in part (b); it is not an analytical solution of the eccentric-cylinder view-factor problem.
+No row normalization, symmetrization or smoothing is applied to hide integration residuals. For this closed enclosure, checks include nonnegative factors, row closure $\sum_jF_{ij}=1$, and area reciprocity. Their numerical residuals do not by themselves establish convergence of the local flux profile.
 
-Analytical comparisons for part (c) remain optional and deferred.
+## 5. Measuring departure from uniform surface flux
+
+Use the area-weighted mean on B, then compare every local arc-average flux to that same mean:
+
+$$
+\bar q_B=\frac{\sum_{i\in B}a_iq_i}{\sum_{i\in B}a_i},\qquad
+\delta_i=100\frac{q_i-\bar q_B}{|\bar q_B|}.
+$$
+
+The two reported relative nonuniformity measures are
+
+$$
+D_{\max}=\max_{i\in B}|\delta_i|,\qquad
+D_{pp}=100\frac{q_{\max}-q_{\min}}{|\bar q_B|}.
+$$
+
+Both are percentages. Differences between these metrics on two meshes are expressed in **percentage points**. Relative nonuniformity is undefined at effectively zero mean flux. Assignment cases use $T_B>T_A$ and have positive mean flux.
+
+Uniformity means that the angular flux equals the current surface mean everywhere. Comparing against a separate concentric calculation answers a different question and is not used as the definition of nonuniformity here.
+
+## 6. Temperature dependence and interpretation
+
+With fixed geometry and emissivities, the radiosity system is linear in $\sigma T_A^4$ and $\sigma T_B^4$. A closed isothermal enclosure has zero net flux, so the model implies
+
+$$
+q_B(\theta)=\sigma(T_B^4-T_A^4)\,h(\theta; r,d,R,\epsilon_A,\epsilon_B).
+$$
+
+Changing $T_B$ scales absolute flux but leaves the normalized angular profile unchanged under these assumptions. This model consequence is checked using the six numerical temperature cases in part (b).
+
+Local net flux depends on both emission and irradiation from the whole enclosure, including diffuse reflections. It is not determined by local gap distance alone. The narrow-gap and wide-gap trends stated in the report refer to the calculated gray-surface cases.
+
+## 7. Numerical checks and limits
+
+- Closure, reciprocity, nonnegativity and enclosure energy balance check numerical consistency.
+- Equal-temperature equilibrium and left/right reflection symmetry are tested at the public solver interfaces.
+- Independent A/B surface refinement and separate integration-tolerance refinement establish finite-mesh stability for the stated study cases.
+- Very narrow gaps, other radii or different emissivities can require additional refinement. A successful solve is not an accuracy guarantee for arbitrary inputs.
+- Infinite isothermal cylinders omit end effects, participating media, material temperature dependence and transient energy storage. Interactive motion shows successive prescribed steady states.

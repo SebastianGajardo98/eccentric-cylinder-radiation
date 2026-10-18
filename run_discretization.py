@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 from radiation import Geometry, ViewFactors, calculate_view_factors, solve_radiation
+from study_data import source_hash
 
 OUTPUT = Path("results/discretization")
 THERMAL = dict(temperature_outer_k=303.15, temperature_inner_k=473.15,
@@ -30,11 +31,19 @@ METRIC_LIMIT = 0.1
 def run_case(spec):
     g = Geometry(r=spec["r"], d=spec["d"], n_outer=spec["n_outer"], n_inner=spec["n_inner"])
     tol = spec.get("tolerance", 1e-8)
-    fingerprint = hashlib.sha256(Path("radiation.py").read_bytes()).hexdigest()
+    fingerprint = source_hash()
     key = json.dumps([asdict(g), tol, fingerprint], sort_keys=True)
     cache = Path("tmp/view_factor_cache") / (hashlib.sha256(key.encode()).hexdigest() + ".npz")
     cache.parent.mkdir(parents=True, exist_ok=True)
     start = time.perf_counter()
+    # Reuse an older cache only when its raw-byte fingerprint matches the
+    # current source exactly. The new key canonicalizes line endings.
+    if not cache.exists():
+        raw_hash = hashlib.sha256(Path("radiation.py").read_bytes()).hexdigest()
+        legacy_key = json.dumps([asdict(g), tol, raw_hash], sort_keys=True)
+        legacy = cache.parent / (hashlib.sha256(legacy_key.encode()).hexdigest()+".npz")
+        if legacy.exists():
+            cache.write_bytes(legacy.read_bytes())
     cached = cache.exists()
     if cached:
         with np.load(cache) as saved:

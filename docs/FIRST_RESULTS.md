@@ -1,3 +1,5 @@
+> Historical development notes. The completed submission is docs/REPORT.md; this file is not shown on the website or included in the submission package.
+
 # First implementation results
 
 These are provisional implementation results, not the completed assignment.

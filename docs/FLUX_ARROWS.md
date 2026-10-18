@@ -1,51 +1,15 @@
-# Reading the surface-flux diagram
+# Reading the interactive simulation
 
-## Geometry from the assignment
+The complete cross-section always shows cylinder B inside cylinder A, at the same physical scale. Positive position moves B right, negative position moves B left, and zero is concentric. The distance d is the absolute center displacement; the signed slider controls x_B/(R-r).
 
-The main diagram always shows the complete cross-section: cylinder B is inside cylinder A, with both circles drawn at the same physical scale. A has radius R = 1 m and center O_A = (0, 0); B has radius r and center O_B = (x_B, 0), with x_B = +d on the right or -d on the left. The dotted straight line joins the centers. The space between the walls is a vacuum. Moving B changes its position while preserving the circular surfaces and their radii.
+Eight outward arrows indicate net surface heat loss normal to B, in four axial directions and four diagonals. Arrow values are periodically interpolated between calculated segment averages. The colored band and angular profile retain the actual segment averages. Adding display arrows would not refine the numerical model.
 
-Use **Horizontal position of B**: negative moves left, zero centers B, and positive moves right. The control represents x_B/(R-r). The distance d = abs(x_B) and normalized eccentricity e = abs(x_B)/(R-r) remain nonnegative. Angles remain fixed relative to the screen: 0 degrees right, 90 top, 180 left and 270 bottom. Mirroring the position mirrors the flux pattern; the scalar mean and nonuniformity measures stay the same at equal distance.
+Every arrow in a frame uses one proportional scale. To remain inside A, that scale fits the available gap. Moving B nearer to a wall therefore shrinks the drawing scale, even on a far side where the calculated flux increases. Screen arrow lengths must not be compared between independently fitted positions. The figure and caption identify this limitation.
 
-The parameters satisfy r < R and d < R-r, so the surfaces do not intersect. The concentric case d = 0 is available as a reference. The assignment concerns infinitely long cylinders; this drawing is a transverse cross-section, and heat rates are reported per unit axial length.
+The primary quantitative display is the signed relative deviation from the current area-weighted mean of B. A positive deviation means above the current mean, and a negative deviation means below it; all eight actual net-flux arrows remain outward for the hotter inner cylinder.
 
-## Net heat flux on B
+For absolute comparisons between positions, expand **Compare eight directions on a fixed flux scale**. Its W/m^2 axis stays fixed while B moves. It changes only when the user explicitly edits the axis maximum or presses **Fit comparison axis**. The reference ticks and side-value deltas use the current B mean, consistently with the assignment's definition of nonuniformity. Values above the chosen range are not silently truncated or rescaled.
 
-The default eight arrows start on B and follow its outward surface normals, every 45 degrees. They include the four axes and the four diagonals. The arrows summarize local net heat loss per unit surface area, not individual radiation-ray trajectories. Diffuse radiation travels over a range of directions.
+The selected report mesh is 96 A / 128 B segments. Preview is faster; Custom changes numerical settings. Interactive settings do not alter the completed studies in (a) and (b). CSV downloads identify the current physical parameters, mesh, integration tolerance and numerical-source fingerprint.
 
-At the default length contrast 1, all arrow lengths use one proportional scale. A greater positive q gives a longer outward arrow. A genuinely negative q gives an inward arrow. All enclosure arrows are fitted with one scale that keeps them within A; they are not individually stretched to reach the wall. If the actual flux varies only slightly, the proportional lengths should also vary only slightly.
-
-This geometric fit changes between independently calculated positions. Reducing the minimum gap reduces the drawing scale for every arrow, even where q increases. The geometry diagram now states this explicitly. Its arrow lengths must not be compared between positions; use the fixed-scale comparison below it.
-
-## Comparing flux while moving B
-
-The **Compare flux with a fixed scale** chart shows the actual flux in eight fixed directions on one axis, initially 0 to 3000 W/m^2. Moving B does not change that axis. The right/left metrics show current flux and its change from a numerically calculated concentric reference using the same radius, temperatures, emissivities and discretization. Dark ticks in the chart mark this reference. The reference is a numerical case, not an analytical benchmark.
-
-The range changes only when the user edits **Flux axis maximum** or presses **Fit comparison scale to this case**. If values exceed the selected range, the chart is withheld and the scale controls open; it does not silently truncate bars or rescale them. Playback uses its own persistent comparison range. The per-position centered-reference deltas are shown in the main Simulation workspace.
-
-For example, at r = 0.4 m, T_B = 200 C, epsilon_A = 0.6, epsilon_B = 0.8 and Preview discretization, the centered flux is about 1558 W/m^2. With B nearly touching the left wall (normalized position -0.95), the reconstructed right-side flux increases to about 1637 W/m^2 and the left-side flux decreases to about 1301 W/m^2. The far-side increase is about 5 percent, even though both arrows in the fitted geometry diagram become shorter. These are numerical illustration values, not a claim of spatial convergence.
-
-The colored band on B shows the calculated segment-average flux in W/m^2. The visible angular profile and its mean-flux reference quantify the variation. Minimum, maximum and maximum relative deviation are reported numerically. These displays make small differences readable while retaining the real geometry and proportional default arrow lengths.
-
-Arrow values are reconstructed by periodic linear interpolation between segment averages. They are approximate display values, not additional pointwise solver results. Increasing the visible arrow count does not change or refine the numerical discretization. The circumference colors, angular profile and exports retain the original segment averages.
-
-## Optional display controls
-
-**Flux arrow display** provides the arrow count, the represented quantity, optional length emphasis and an optional mean-flux tip guide. The guide is off by default: the only circular boundaries in the initial diagram are the actual cylinder walls. When enabled, the dashed contour marks where equal arrows at the mean flux would end; it is not another cylinder.
-
-For optional length contrast greater than 1, the signed mapping is `abs(q_mean) * sign(q) * (abs(q)/abs(q_mean))**contrast`, applied before fitting the common drawing scale. It preserves ordering, sign and uniform fields, but exaggerates differences. The drawing explicitly states that lengths are not proportional to q and omits the linear W/m^2 arrow key. Colors, numerical values, angular profiles and solver results remain unchanged. Set contrast to 1 for quantitative comparisons by arrow length.
-
-Optional emphasis is defined around each case's own mean, so emphasized lengths should not be compared quantitatively across geometry cases with different means. Use contrast 1 or compare the actual numerical values and colors.
-
-## Deviation from mean
-
-The optional deviation representation uses `100 * (q - q_mean)/abs(q_mean)` in percent. Outward deviation arrows indicate above-average flux; inward deviation arrows indicate below-average flux. An inward deviation arrow does not imply that the actual net heat flows inward. The color scale is symmetric around zero, and the angular profile uses a zero reference.
-
-Relative deviation is undefined at effectively zero mean flux; no deviation arrows are drawn in that case. Roundoff below 1e-8 percentage points is suppressed so a uniform solution does not show false variations. The length-contrast control does not affect this representation.
-
-## Comparing cases
-
-Parameter playback keeps the outer-cylinder frame, arrow scale and color scale fixed across its cases. At contrast 1, arrow lengths and cylinder positions can be compared between frames. Independently fitted single-case views may use different drawing scales, so read the arrow key before comparing screen lengths between them.
-
-For the illustrated diffuse-gray case with B offset to the right, calculated flux is lower on the right and higher on the left, while top and bottom agree by symmetry. Extrema come from the solution rather than an assumed relation to gap distance.
-
-The physical solver, discretization studies and parameter studies are unchanged by the display controls. A readable diagram complements the required numerical analysis; it does not establish discretization convergence by itself.
+No transient temperature evolution is modeled: every control change solves another prescribed steady state.
