@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from assignment_content import ANALYTICAL_SCOPE, CODE_REQUIREMENT, REQUIREMENTS, TITLE
+from assignment_content import REQUIREMENTS, TITLE
 from study_data import DATA, MESH, ROOT, STUDIES, discussion, load_studies, study_rows, summary_markdown
 
 
@@ -120,7 +120,6 @@ def write_reports(selection, cases, profiles, manifest):
         r"Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are written as $T_A$ and $T_B$ in the report.", "",
         "## The following is required", "",
         *[f"**({part})** {text}\n" for part, text in REQUIREMENTS.items()],
-        ANALYTICAL_SCOPE, "", f"**{CODE_REQUIREMENT}**", "",
         "## Objective and numerical scope", "",
         "Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses. The agreed submission scope does not include comparison against analytical solutions.", "",
         "![Geometry and surface segments](../results/studies/geometry_and_segments.png)", "",
@@ -132,7 +131,7 @@ def write_reports(selection, cases, profiles, manifest):
         "![Selected-mesh baseline flux](../results/studies/baseline_flux.png)", "",
         report_section(parameters, "## Part (b): influence of physical parameters", "b"), "",
         "## Part (c): discussion and conclusions", "",
-        "**Assignment requirement (c)**", "", "> "+REQUIREMENTS["c"], "", ANALYTICAL_SCOPE, "",
+        "**Assignment requirement (c)**", "", "> "+REQUIREMENTS["c"], "",
         f"1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = {baseline.mean_inner_flux_w_m2:.6f} W/m², maximum relative deviation = {baseline.max_deviation_percent:.6f}% and peak-to-peak range = {baseline.peak_to_peak_percent:.6f}%.",
         "2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.",
         "3. At the stated fixed emissivities, increasing center distance or increasing radius at fixed center distance increases relative nonuniformity over the studied ranges. The two variations change enclosure geometry in different ways.",

@@ -21,10 +21,6 @@ Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are writ
 
 **(c)** Supplement all analyses with appropriate descriptions, diagrams, and commentary, and compare the results with analytical solutions, if find appropriate.
 
-The optional comparison with analytical solutions is not included in this report.
-
-**The corresponding program code must be included for all analyses!**
-
 ## Objective and numerical scope
 
 Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses. The agreed submission scope does not include comparison against analytical solutions.
@@ -357,8 +353,6 @@ Reproduce with `python run_assignment.py`. Source fingerprints and raw tables ar
 **Assignment requirement (c)**
 
 > Supplement all analyses with appropriate descriptions, diagrams, and commentary, and compare the results with analytical solutions, if find appropriate.
-
-The optional comparison with analytical solutions is not included in this report.
 
 1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = 1549.473679 W/m², maximum relative deviation = 4.734188% and peak-to-peak range = 8.206598%.
 2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.

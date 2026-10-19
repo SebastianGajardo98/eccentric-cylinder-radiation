@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from app_charts import angular_chart, trend_chart
-from assignment_content import ANALYTICAL_SCOPE, CODE_REQUIREMENT, REQUIREMENTS
+from assignment_content import REQUIREMENTS
 from study_data import DATA, MESH, ROOT, STUDIES, discussion, study_rows
 
 
@@ -30,8 +30,6 @@ def numerical_evidence(cases):
 def requirement(part):
     st.markdown(f"**Assignment requirement ({part})**")
     st.markdown("> " + REQUIREMENTS[part])
-    if part == "c":
-        st.caption(ANALYTICAL_SCOPE)
 
 
 def assignment_page():
@@ -41,8 +39,6 @@ def assignment_page():
     st.subheader("The following is required")
     for part, text in REQUIREMENTS.items():
         st.markdown(f"**({part})** {text}")
-    st.caption(ANALYTICAL_SCOPE)
-    st.markdown(f"**{CODE_REQUIREMENT}**")
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
     st.caption("Geometry and the idea of equal-arc segmentation. The 12 A arcs and 8 B arcs are illustrative drawing choices; suitable calculation counts will be assessed in (a) Discretization.")
     st.markdown((ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"))

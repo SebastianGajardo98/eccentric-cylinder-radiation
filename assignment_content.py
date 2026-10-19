@@ -7,6 +7,3 @@ REQUIREMENTS = {
     "b": r"Using the same thermodynamic model and the selected discretization, analyse the influence of parameters $r$, $d$, and $\vartheta_B$, on the deviation from uniform surface density of cylinder B.",
     "c": "Supplement all analyses with appropriate descriptions, diagrams, and commentary, and compare the results with analytical solutions, if find appropriate.",
 }
-
-CODE_REQUIREMENT = "The corresponding program code must be included for all analyses!"
-ANALYTICAL_SCOPE = "The optional comparison with analytical solutions is not included in this report."
