@@ -20,8 +20,8 @@ import report_ui
 def select_section(value):
     st.session_state.report_section = value
 
-st.set_page_config(page_title="Eccentric cylinder radiation", layout="wide", initial_sidebar_state="expanded")
-st.title("Radiation between eccentric cylinders")
+st.set_page_config(page_title="Radiation between infinite eccentric cylinders", layout="wide", initial_sidebar_state="expanded")
+st.title("Radiation between infinite eccentric cylinders")
 st.caption("Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer · Numerical view-factor analysis")
 
 SECTIONS = ["Assignment", "Model", "(a) Discretization", "(b) Parameter studies", "(c) Discussion and conclusions", "Interactive simulation"]

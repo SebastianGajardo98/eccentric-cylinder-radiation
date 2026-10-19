@@ -1,4 +1,4 @@
-# Radiation between eccentric cylinders
+# Radiation between infinite eccentric cylinders
 
 A numerical assignment report and interactive Streamlit simulation for Sebastian Alberto Gajardo Lobos, Heat and Mass Transfer (Radiative Heat Transfer), assigned by Nenad Ferdelji on 12 October 2026.
 
