@@ -197,7 +197,7 @@ No row normalization, symmetrization or smoothing is applied to hide integration
 - Closure, $\sum_jF_{ij}=1$ **(all fractions leaving a patch must add to 1, or 100%, because the enclosure is closed)**.
 - Reciprocity, $a_iF_{ij}=a_jF_{ji}$ **(the area-weighted geometrical exchange is consistent in both directions)**.
 
-Their numerical residuals do not by themselves establish convergence of the local flux profile.
+Passing these checks does not guarantee an accurate flux distribution around B. Accuracy is assessed by refining the surface discretization in the next section.
 
 ### 5. Measuring departure from uniform surface flux
 
