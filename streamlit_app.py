@@ -160,3 +160,16 @@ if section != "Interactive simulation":
     following = SECTIONS[SECTIONS.index(section)+1]
     label = "Explore interactively" if following == "Interactive simulation" else f"Next: {following}"
     st.button(label, on_click=select_section, args=(following,), key="next_section")
+
+# A section change is a new reading destination; ordinary widget reruns keep position.
+previous_section = st.session_state.get("last_rendered_section", section)
+st.session_state.last_rendered_section = section
+if previous_section != section:
+    st.session_state.navigation_count = st.session_state.get("navigation_count", 0) + 1
+    st.html(
+        f'<script data-navigation="{st.session_state.navigation_count}">'
+        'document.querySelector(\'[data-testid="stMain"]\')'
+        '?.scrollTo({top: 0, left: 0, behavior: "instant"});'
+        '</script>',
+        unsafe_allow_javascript=True,
+    )
