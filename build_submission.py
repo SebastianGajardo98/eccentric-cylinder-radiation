@@ -8,7 +8,7 @@ import zipfile
 from study_data import DATA, MESH, ROOT, load_studies
 
 SOURCE_FILES = (
-    "radiation.py", "flux_plot.py", "streamlit_app.py", "report_ui.py", "app_charts.py",
+    "radiation.py", "flux_plot.py", "streamlit_app.py", "report_ui.py", "app_charts.py", "assignment_content.py",
     "study_data.py", "run_discretization.py", "finalize_discretization.py", "plot_discretization.py",
     "run_parameter_studies.py", "plot_studies.py", "run_assignment.py", "build_submission.py",
     "requirements.txt", "requirements-dev.txt", "pytest.ini", "README.md",

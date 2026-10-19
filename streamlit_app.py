@@ -11,6 +11,7 @@ import pandas as pd
 import streamlit as st
 
 from app_charts import angular_chart
+from assignment_content import TITLE
 from flux_plot import arrow_samples, geometry_chart
 from radiation import Geometry, ViewFactors, calculate_view_factors, solve_radiation
 from study_data import ROOT, load_studies, source_hash
@@ -20,15 +21,17 @@ import report_ui
 def select_section(value):
     st.session_state.report_section = value
 
-st.set_page_config(page_title="Radiation between infinite eccentric cylinders", layout="wide", initial_sidebar_state="expanded")
-st.title("Radiation between infinite eccentric cylinders")
+st.set_page_config(page_title=TITLE, layout="wide", initial_sidebar_state="expanded")
+st.title(TITLE)
 st.caption("Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer · Numerical view-factor analysis")
 
-SECTIONS = ["Assignment", "Model", "(a) Discretization", "(b) Parameter studies", "(c) Discussion and conclusions", "Interactive simulation"]
+SECTIONS = ["Assignment", "(a) Model", "(a) Discretization", "(b) Parameter studies", "(c) Discussion and conclusions", "Interactive simulation"]
 if st.session_state.get("report_section") == "Overview":
     st.session_state.report_section = "Assignment"
 elif st.session_state.get("report_section") == "Conclusions and code":
     st.session_state.report_section = "(c) Discussion and conclusions"
+elif st.session_state.get("report_section") == "Model":
+    st.session_state.report_section = "(a) Model"
 with st.sidebar:
     st.subheader("Assignment sections")
     section = st.radio("Navigation", SECTIONS, key="report_section", label_visibility="collapsed")
@@ -88,7 +91,7 @@ def directional_comparison(result):
 
 if section == "Assignment":
     report_ui.assignment_page()
-elif section == "Model":
+elif section == "(a) Model":
     report_ui.model_page()
 elif section == "(a) Discretization":
     report_ui.discretization_page(selection, cases)

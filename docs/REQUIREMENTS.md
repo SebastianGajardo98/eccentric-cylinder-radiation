@@ -1,6 +1,6 @@
 # Assignment requirements and completed evidence
 
-The scope is the numerical view-factor assignment supplied for Sebastian Alberto Gajardo Lobos, excluding comparison against analytical solutions as requested by the user. The report and website follow the remaining requirements.
+The scope is the numerical view-factor assignment supplied for Sebastian Alberto Gajardo Lobos, excluding comparison against analytical solutions as requested by the user. The report and website reproduce the full original requirements (a), (b) and (c), with the optional analytical comparison identified as outside the report scope. Assignment introduces all three parts as prose, and each analysis begins with its corresponding full requirement. Part (a) is split into Model and Discretization. The evidence map below is retained as a reference document; it is not displayed as a table on the Assignment page.
 
 | Requirement | Completed evidence | Where to read or reproduce it |
 | --- | --- | --- |

@@ -10,7 +10,7 @@ def test_report_navigation_and_all_required_studies_render():
     assert app.radio(key="report_section").value == "Assignment"
     assert not app.exception and not app.error
     app.button(key="next_section").click().run()
-    assert app.radio(key="report_section").value == "Model"
+    assert app.radio(key="report_section").value == "(a) Model"
     assert not app.exception and not app.error
     app.button(key="next_section").click().run()
     for refinement in ("Outer surface A", "Inner surface B", "Integration tolerance"):

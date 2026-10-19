@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from assignment_content import ANALYTICAL_SCOPE, CODE_REQUIREMENT, REQUIREMENTS, TITLE
 from study_data import DATA, MESH, ROOT, STUDIES, discussion, load_studies, study_rows, summary_markdown
 
 
@@ -109,25 +110,29 @@ def write_reports(selection, cases, profiles, manifest):
     (ROOT / "docs" / "PARAMETERS.md").write_text(parameters, encoding="utf-8")
     model = (ROOT / "docs" / "MODEL.md").read_text(encoding="utf-8")
     selection_text = (ROOT / "docs" / "DISCRETIZATION.md").read_text(encoding="utf-8")
-    def report_section(text, heading):
+    def report_section(text, heading, part):
         body = text.split("\n", 1)[1].replace("\n## ", "\n### ")
-        return heading+"\n"+body
-    report = ["# Radiative heat transfer between eccentric cylinders", "",
+        return heading+f"\n\n**Assignment requirement ({part})**\n\n> "+REQUIREMENTS[part]+"\n"+body
+    report = ["# "+TITLE, "",
         "Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer (Radiative Heat Transfer)", "",
         "## Assignment statement", "",
         (ROOT / "docs" / "ASSIGNMENT.md").read_text(encoding="utf-8"), "",
         r"Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are written as $T_A$ and $T_B$ in the report.", "",
+        "## The following is required", "",
+        *[f"**({part})** {text}\n" for part, text in REQUIREMENTS.items()],
+        ANALYTICAL_SCOPE, "", f"**{CODE_REQUIREMENT}**", "",
         "## Objective and numerical scope", "",
         "Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses. The agreed submission scope does not include comparison against analytical solutions.", "",
         "![Geometry and surface segments](../results/studies/geometry_and_segments.png)", "",
         "Figure: working geometry. The displayed 12/8 segment boundaries illustrate the idea of equal-arc discretization; suitable calculation counts are assessed in the refinement study below.", "",
         (ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"), "",
-        report_section(model, "## Part (a): thermodynamic model"), "",
-        report_section(selection_text, "## Part (a): discretization selection"), "",
+        report_section(model, "## Part (a): thermodynamic model", "a"), "",
+        report_section(selection_text, "## Part (a): discretization selection", "a"), "",
         "![Independent mesh selection](../results/discretization/discretization_selection.png)", "",
         "![Selected-mesh baseline flux](../results/studies/baseline_flux.png)", "",
-        report_section(parameters, "## Part (b): influence of physical parameters"), "",
+        report_section(parameters, "## Part (b): influence of physical parameters", "b"), "",
         "## Part (c): discussion and conclusions", "",
+        "**Assignment requirement (c)**", "", "> "+REQUIREMENTS["c"], "", ANALYTICAL_SCOPE, "",
         f"1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = {baseline.mean_inner_flux_w_m2:.6f} W/m², maximum relative deviation = {baseline.max_deviation_percent:.6f}% and peak-to-peak range = {baseline.peak_to_peak_percent:.6f}%.",
         "2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.",
         "3. At the stated fixed emissivities, increasing center distance or increasing radius at fixed center distance increases relative nonuniformity over the studied ranges. The two variations change enclosure geometry in different ways.",

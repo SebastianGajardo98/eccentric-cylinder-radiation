@@ -1,4 +1,4 @@
-# Radiative heat transfer between eccentric cylinders
+# Analysis of Radiative Heat Transfer Between Two Infinitely Long Cylinders in an Eccentric Arrangement
 
 Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer (Radiative Heat Transfer)
 
@@ -12,6 +12,18 @@ The task is to analyse the deviation from uniform surface flux density when the 
 
 
 Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are written as $T_A$ and $T_B$ in the report.
+
+## The following is required
+
+**(a)** For a selected combination of parameters $r$, $d$, and $\vartheta_B$, analyse the effect of discretizing the surfaces of cylinders A and B into equal segments (the number of elements on cylinders A and B need not be equal) on the deviation from uniform surface flux density on cylinder B. The analysis must include the derivation of the appropriate thermodynamic model for radiative heat transfer.
+
+**(b)** Using the same thermodynamic model and the selected discretization, analyse the influence of parameters $r$, $d$, and $\vartheta_B$, on the deviation from uniform surface density of cylinder B.
+
+**(c)** Supplement all analyses with appropriate descriptions, diagrams, and commentary, and compare the results with analytical solutions, if find appropriate.
+
+The optional comparison with analytical solutions is not included in this report.
+
+**The corresponding program code must be included for all analyses!**
 
 ## Objective and numerical scope
 
@@ -38,6 +50,10 @@ The normal arrows show surface orientation. Their lengths do not represent heat-
 
 
 ## Part (a): thermodynamic model
+
+**Assignment requirement (a)**
+
+> For a selected combination of parameters $r$, $d$, and $\vartheta_B$, analyse the effect of discretizing the surfaces of cylinders A and B into equal segments (the number of elements on cylinders A and B need not be equal) on the deviation from uniform surface flux density on cylinder B. The analysis must include the derivation of the appropriate thermodynamic model for radiative heat transfer.
 
 ### 1. Physical assumptions and geometry
 
@@ -173,6 +189,10 @@ Local net flux depends on both emission and irradiation from the whole enclosure
 
 ## Part (a): discretization selection
 
+**Assignment requirement (a)**
+
+> For a selected combination of parameters $r$, $d$, and $\vartheta_B$, analyse the effect of discretizing the surfaces of cylinders A and B into equal segments (the number of elements on cylinders A and B need not be equal) on the deviation from uniform surface flux density on cylinder B. The analysis must include the derivation of the appropriate thermodynamic model for radiative heat transfer.
+
 ### Working parameters
 
 | Parameter | Baseline | Reason |
@@ -274,6 +294,10 @@ Raw case tables, angular profiles, comparison tables, source fingerprints, and s
 
 ## Part (b): influence of physical parameters
 
+**Assignment requirement (b)**
+
+> Using the same thermodynamic model and the selected discretization, analyse the influence of parameters $r$, $d$, and $\vartheta_B$, on the deviation from uniform surface density of cylinder B.
+
 All cases use N_A = 96, N_B = 128, source integration tolerance 1e-8, R = 1 m, T_A = 30 C, epsilon_A = 0.6 and epsilon_B = 0.8. Only the named parameter changes within each study. All reported q values are segment averages.
 
 ### Center distance d
@@ -329,6 +353,12 @@ Reproduce with `python run_assignment.py`. Source fingerprints and raw tables ar
 
 
 ## Part (c): discussion and conclusions
+
+**Assignment requirement (c)**
+
+> Supplement all analyses with appropriate descriptions, diagrams, and commentary, and compare the results with analytical solutions, if find appropriate.
+
+The optional comparison with analytical solutions is not included in this report.
 
 1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = 1549.473679 W/m², maximum relative deviation = 4.734188% and peak-to-peak range = 8.206598%.
 2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.

@@ -1,4 +1,4 @@
-# Radiation between infinite eccentric cylinders
+# Analysis of Radiative Heat Transfer Between Two Infinitely Long Cylinders in an Eccentric Arrangement
 
 A numerical assignment report and interactive Streamlit simulation for Sebastian Alberto Gajardo Lobos, Heat and Mass Transfer (Radiative Heat Transfer), assigned by Nenad Ferdelji on 12 October 2026.
 
@@ -19,7 +19,7 @@ python -m pip install -r requirements.txt
 python -m streamlit run streamlit_app.py
 ```
 
-The website opens on Assignment. Its Model, (a) Discretization, (b) Parameter studies and (c) Discussion and conclusions sections use completed recorded results. Part (c) also provides the report, data and code downloads. Interactive simulation is separate: sidebar changes do not modify the reported studies. Eight surface arrows, colors and relative profiles explore local net flux; a fixed-axis directional comparison is available as an optional detail.
+The website opens on Assignment with the original description and full requirements (a), (b) and (c). Each analysis begins with its corresponding requirement. Part (a) is split into Model and Discretization; part (b) contains the parameter studies; part (c) provides the discussion, conclusions and report, data and code downloads. Interactive simulation is separate: sidebar changes do not modify the reported studies. Eight surface arrows, colors and relative profiles explore local net flux; a fixed-axis directional comparison is available as an optional detail.
 
 ## Reproduce all results
 

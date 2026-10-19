@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from app_charts import angular_chart, trend_chart
+from assignment_content import ANALYTICAL_SCOPE, CODE_REQUIREMENT, REQUIREMENTS
 from study_data import DATA, MESH, ROOT, STUDIES, discussion, study_rows
 
 
@@ -26,18 +27,22 @@ def numerical_evidence(cases):
     st.caption("These check consistency. Convergence of the local flux distribution is assessed separately by mesh refinement.")
 
 
+def requirement(part):
+    st.markdown(f"**Assignment requirement ({part})**")
+    st.markdown("> " + REQUIREMENTS[part])
+    if part == "c":
+        st.caption(ANALYTICAL_SCOPE)
+
+
 def assignment_page():
     st.header("Assignment")
     st.markdown((ROOT / "docs" / "ASSIGNMENT.md").read_text(encoding="utf-8"))
     st.caption(r"Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are written as $T_A$ and $T_B$ elsewhere in the app.")
-    st.table(pd.DataFrame([
-        ["(a) Thermodynamic model and derivation", "Model: assumptions, view factors, radiosity and net-flux equations"],
-        ["(a) Equal-segment surface refinement", "Discretization: independent A/B refinement and integration checks"],
-        ["(a) Select a discretization", "Use the refinement comparisons and accuracy criteria to justify segment counts for part (b)"],
-        ["(b) Influence of r, d and T_B", "Change one parameter at a time, keeping the discretization chosen in (a)"],
-        ["(c) Descriptions, diagrams and commentary", "Explanations and diagrams accompany Model, (a) and (b); (c) Discussion and conclusions brings the findings together"],
-        ["Program code for all analyses", "(c) Discussion and conclusions: downloadable report, data, figures and complete source package"],
-    ], columns=["Requirement", "Purpose of the section"]).set_index("Requirement"))
+    st.subheader("The following is required")
+    for part, text in REQUIREMENTS.items():
+        st.markdown(f"**({part})** {text}")
+    st.caption(ANALYTICAL_SCOPE)
+    st.markdown(f"**{CODE_REQUIREMENT}**")
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
     st.caption("Geometry and the idea of equal-arc segmentation. The 12 A arcs and 8 B arcs are illustrative drawing choices; suitable calculation counts will be assessed in (a) Discretization.")
     st.markdown((ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"))
@@ -46,11 +51,14 @@ def assignment_page():
     st.dataframe(pd.DataFrame({"Parameter": ["R", "T_A", "r", "d", "T_B", "ε_A / ε_B"],
         "Value": ["1 m (prescribed)", "30 °C (prescribed)", "0.4 m", "0.3 m", "200 °C", "0.6 / 0.8"]}), hide_index=True)
     st.caption("The geometry and temperatures are prescribed steady states. Interactive movement explores parameter changes; it is not a transient-heating model.")
-    st.info("Read Model, then (a) Discretization, then (b) Parameter studies. Interactive simulation is separate from the fixed report results.")
+    st.info("Read (a) Model, then (a) Discretization, then (b) Parameter studies and (c) Discussion and conclusions. Interactive simulation is separate from the fixed report results.")
 
 
 def model_page():
-    st.markdown((ROOT / "docs" / "MODEL.md").read_text(encoding="utf-8"))
+    st.header("(a) Thermodynamic model")
+    requirement("a")
+    st.write("This section addresses the model derivation in part (a). The surface-refinement analysis continues in (a) Discretization.")
+    st.markdown((ROOT / "docs" / "MODEL.md").read_text(encoding="utf-8").split("\n", 1)[1])
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
     st.caption("The 12/8 arcs illustrate the method. Calculation counts will be assessed in (a) Discretization. The normals point into the vacuum.")
     st.markdown((ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"))
@@ -58,6 +66,8 @@ def model_page():
 
 def discretization_page(selection, cases):
     st.header("(a) Surface discretization")
+    requirement("a")
+    st.subheader("Independent refinement of A and B")
     st.write("Hold r = 0.4 m, d = 0.3 m, T_B = 200 °C and emissivities 0.6/0.8 fixed. Refine one surface at a time, retaining equal angular arcs on each surface.")
     study = st.segmented_control("Refinement evidence", ["Outer surface A", "Inner surface B", "Integration tolerance"], default="Outer surface A", required=True, key="refinement_evidence")
     all_cases = pd.read_csv(MESH / "independent_cases.csv")
@@ -121,6 +131,8 @@ def discretization_page(selection, cases):
 
 def parameters_page(cases, profiles):
     st.header("(b) Influence of r, d and T_B")
+    requirement("b")
+    st.subheader("Study setup")
     st.write("All results below use the selected 96/128 discretization and tolerance 1e-8. R = 1 m, T_A = 30 °C and ε_A/ε_B = 0.6/0.8 remain fixed. Each study changes one named parameter.")
     labels = {"Center distance d": "offset", "Inner radius r": "radius", "Inner temperature T_B": "temperature"}
     selected = st.segmented_control("Required parameter study", list(labels), default="Center distance d", required=True, key="required_parameter")
@@ -157,7 +169,8 @@ def parameters_page(cases, profiles):
 
 def conclusions_page(selection, cases, manifest):
     st.header("(c) Discussion and conclusions")
-    st.write("Part (c) brings together the interpretation of the calculations. Its descriptions, diagrams and commentary also accompany Model and the analyses in (a) and (b). The conclusions below refer to the stated parameter ranges and fixed emissivities.")
+    requirement("c")
+    st.write("Part (c) brings together the interpretation of the calculations. Its descriptions, diagrams and commentary also accompany the analyses in (a) and (b). The conclusions below refer to the stated parameter ranges and fixed emissivities.")
     for study in STUDIES:
         st.subheader(STUDIES[study][0])
         st.write(discussion(cases, study))
