@@ -24,7 +24,9 @@ st.set_page_config(page_title="Eccentric cylinder radiation", layout="wide", ini
 st.title("Radiation between eccentric cylinders")
 st.caption("Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer · Numerical view-factor analysis")
 
-SECTIONS = ["Overview", "Model", "(a) Discretization", "(b) Parameter studies", "Conclusions and code", "Interactive simulation"]
+SECTIONS = ["Assignment", "Model", "(a) Discretization", "(b) Parameter studies", "Conclusions and code", "Interactive simulation"]
+if st.session_state.get("report_section") == "Overview":
+    st.session_state.report_section = "Assignment"
 with st.sidebar:
     st.subheader("Assignment sections")
     section = st.radio("Navigation", SECTIONS, key="report_section", label_visibility="collapsed")
@@ -82,8 +84,8 @@ def directional_comparison(result):
     st.caption(f"Fixed axis: 0–{limit:,.0f} W/m². Dark ticks show the current surface mean, {mean:.2f} W/m². Above/below this mean is the nonuniformity requested in the assignment.")
 
 
-if section == "Overview":
-    report_ui.overview()
+if section == "Assignment":
+    report_ui.assignment_page()
 elif section == "Model":
     report_ui.model_page()
 elif section == "(a) Discretization":
