@@ -25,6 +25,7 @@ $$
 \Delta\theta_A=\frac{2\pi}{N_A},\qquad
 \Delta\theta_B=\frac{2\pi}{N_B},\qquad
 a_A=R\Delta\theta_A,\qquad a_B=r\Delta\theta_B.
+\tag{1}
 $$
 
 The $a_i$ have units m² per m of axial length (equivalently m). Flux density $q_i$ has units W/m²; heat rate per axial length $Q'$ has units W/m. These are different quantities, particularly when radius changes. The reported local numerical flux is an arc average, rather than an exact pointwise value.
@@ -37,46 +38,48 @@ The total outgoing radiosity is therefore
 
 $$
 J_i=\epsilon_i\sigma T_i^4+(1-\epsilon_i)G_i.
+\tag{2}
 $$
 
 The view factor $F_{ij}$ is the fraction of diffuse radiation leaving arc $i$ that reaches arc $j$, accounting for visibility and obstruction by B. Reciprocity gives the incident-radiation relation
 
 $$
 G_i=\sum_jF_{ij}J_j.
+\tag{3}
 $$
 
-**Step 1: Substitute the expression for incoming irradiation**
-
-In the radiosity equation, replace $G_i$ with $\sum_jF_{ij}J_j$. The outgoing radiation is still the surface's own emission plus reflected incoming radiation:
+Substituting (3) into (2):
 
 $$
 J_i=\epsilon_i\sigma T_i^4
 +(1-\epsilon_i)\underbrace{\sum_jF_{ij}J_j}_{G_i}.
+\tag{4}
 $$
 
-**Step 2: Collect the unknown radiosities on the left**
-
-Subtract the reflected contribution, $(1-\epsilon_i)\sum_jF_{ij}J_j$, from both sides. The known thermal-emission term remains on the right:
+Rearranging (4):
 
 $$
 J_i-(1-\epsilon_i)\sum_jF_{ij}J_j=\epsilon_i\sigma T_i^4.
+\tag{5}
 $$
 
-Write this equation for every surface arc $i$. The equations are **coupled** because the outgoing radiation from one arc depends on radiation leaving other arcs. They are **linear in the unknown radiosities** $J_j$: these unknowns appear only to the first power, multiplied by known coefficients. The prescribed temperatures $T_i$ are known inputs, even though they appear to the fourth power.
+Equation (5) is written for every surface arc $i$. The equations are **coupled** because the outgoing radiation from one arc depends on radiation leaving other arcs. They are **linear in the unknown radiosities** $J_j$: these unknowns appear only to the first power, multiplied by known coefficients. The prescribed temperatures $T_i$ are known inputs, even though they appear to the fourth power.
 
-**Matrix form: solve all the arc equations together**
+**Matrix form**
 
-The following is a compact way to collect the equations above. Here $I$ is the identity matrix, $F$ contains the view factors, $\mathcal E=\operatorname{diag}(\epsilon_i)$ stores the emissivities on its diagonal, and $\mathbf J$ is the list of unknown radiosities. Solve
+Collecting (5) for all surface arcs gives (6). Here $I$ is the identity matrix, $F$ contains the view factors, $\mathcal E=\operatorname{diag}(\epsilon_i)$ stores the emissivities on its diagonal, and $\mathbf J$ is the list of unknown radiosities:
 
 $$
 \left[I-(I-\mathcal E)F\right]\mathbf J
 =\mathcal E\sigma\mathbf T^4.
+\tag{6}
 $$
 
-The solver uses a linear-system solve, then evaluates irradiation and the net flux from each surface into the vacuum:
+After solving (6), irradiation follows from (3), and the net outward flux is
 
 $$
 q_i=\epsilon_i(\sigma T_i^4-G_i)=J_i-G_i.
+\tag{7}
 $$
 
 Positive $q_i$ means net heat leaves the body; the hotter B has positive net outward flux. Cylinder A absorbs the net heat transferred from B. Using areas per unit axial length,
@@ -84,6 +87,7 @@ Positive $q_i$ means net heat leaves the body; the hotter B has positive net out
 $$
 Q'_B=\sum_{i\in B}a_iq_i,\qquad
 Q'_A=\sum_{i\in A}a_iq_i,\qquad Q'_A+Q'_B=0.
+\tag{8}
 $$
 
 Diffuse-gray radiosity and irradiation are described in the [COMSOL surface-radiation theory reference](https://doc.comsol.com/6.3/doc/com.comsol.help.heat/heat_ug_theory.07.051.html). The sign convention here is positive outward.
@@ -95,13 +99,15 @@ The three-dimensional diffuse exchange kernel is $\cos\theta_i\cos\theta_j/(\pi 
 $$
 \int_{-\infty}^{\infty}
 \frac{\rho^2}{\pi(\rho^2+z^2)^2}\,dz=\frac{1}{2\rho}.
+\tag{9}
 $$
 
-The view-factor exchange per unit axial length is thus
+Using (9), the view-factor exchange per unit axial length is
 
 $$
 a_iF_{ij}=\int_{\mathrm{arc}\ i}\int_{\mathrm{arc}\ j}
 V(p_i,p_j)\frac{\cos\beta_i\cos\beta_j}{2\rho}\,ds_j\,ds_i.
+\tag{10}
 $$
 
 Here $V$ is one only for mutually visible points facing into the vacuum and zero otherwise. Cylinder A has inward-facing vacuum normals; B has outward-facing normals. The kernel is symmetric, giving reciprocity $a_iF_{ij}=a_jF_{ji}$. B is convex and has no self-view. A is concave and can see other parts of itself, including part of the same finite arc.
@@ -111,6 +117,7 @@ For a source point, let $\phi$ be emission direction relative to its vacuum-faci
 $$
 \int_{\phi_1}^{\phi_2}\frac{\cos\phi}{2}\,d\phi
 =\frac{\sin\phi_2-\sin\phi_1}{2}.
+\tag{11}
 $$
 
 A midpoint ray identifies the first intersected receiver in each interval. Tangent directions account for the shadow cast by B. Average the resulting directional factors over each source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, maximum norm). The integration tolerance controls this numerical integration and is assessed separately from the surface segment counts in the discretization study.
@@ -124,6 +131,7 @@ Use the area-weighted mean on B, then compare every local arc-average flux to th
 $$
 \bar q_B=\frac{\sum_{i\in B}a_iq_i}{\sum_{i\in B}a_i},\qquad
 \delta_i=100\frac{q_i-\bar q_B}{|\bar q_B|}.
+\tag{12}
 $$
 
 The two reported relative nonuniformity measures are
@@ -131,6 +139,7 @@ The two reported relative nonuniformity measures are
 $$
 D_{\max}=\max_{i\in B}|\delta_i|,\qquad
 D_{pp}=100\frac{q_{\max}-q_{\min}}{|\bar q_B|}.
+\tag{13}
 $$
 
 Both are percentages. Differences between these metrics on two meshes are expressed in **percentage points**. Relative nonuniformity is undefined at effectively zero mean flux. Assignment cases use $T_B>T_A$ and have positive mean flux.
@@ -143,6 +152,7 @@ With fixed geometry and emissivities, the radiosity system is linear in $\sigma 
 
 $$
 q_B(\theta)=\sigma(T_B^4-T_A^4)\,h(\theta; r,d,R,\epsilon_A,\epsilon_B).
+\tag{14}
 $$
 
 Changing $T_B$ scales absolute flux but leaves the normalized angular profile unchanged under these assumptions. This model consequence is checked using the six numerical temperature cases in part (b).
