@@ -149,7 +149,21 @@ Diffuse-gray radiosity and irradiation are described in the [COMSOL surface-radi
 
 ### 4. View factors for infinitely long cylinders
 
-The three-dimensional diffuse exchange kernel is $\cos\theta_i\cos\theta_j/(\pi s^2)$. Let $\rho$ be transverse separation and $z$ the relative axial coordinate, so $s^2=\rho^2+z^2$. Each projection of a transverse surface normal contributes $\rho/s$. Integration over the infinite axial direction yields
+**Symbols in equations (9) and (10)**
+
+| Symbol | Meaning |
+| --- | --- |
+| $i$, $j$ | Labels for the emitting arc and receiving arc. |
+| $p_i$, $p_j$ | Points on the emitting arc $i$ and receiving arc $j$. |
+| $\rho$ | Distance between the two points in the cross-section (m). |
+| $z$ | Separation between the points along the cylinder axis, perpendicular to the cross-section (m). |
+| $\beta_i$, $\beta_j$ | Angles in the cross-section between the connecting line and the surface normals pointing into the vacuum. |
+| $V(p_i,p_j)$ | Visibility: 1 when the points have an unobstructed connection and face each other; 0 otherwise. |
+| $a_i$ | Area of arc $i$ per unit axial length (m²/m). |
+| $F_{ij}$ | Fraction of diffuse radiation leaving arc $i$ that directly reaches arc $j$. |
+| $ds_i$, $ds_j$ | Infinitesimal (arbitrarily small) arc-length elements on arcs $i$ and $j$ (m), summed by the double integral. |
+
+The three-dimensional diffuse exchange kernel is $\cos\theta_i\cos\theta_j/(\pi s^2)$, where $s$ is the full distance between the points and $s^2=\rho^2+z^2$. Each projection of a transverse surface normal contributes $\rho/s$. Integration over the infinite axial direction yields
 
 $$
 \int_{-\infty}^{\infty}
@@ -165,7 +179,7 @@ V(p_i,p_j)\frac{\cos\beta_i\cos\beta_j}{2\rho}\,ds_j\,ds_i.
 \tag{10}
 $$
 
-Here $V$ is one only for mutually visible points facing into the vacuum and zero otherwise. Cylinder A has inward-facing vacuum normals; B has outward-facing normals. The kernel is symmetric, giving reciprocity $a_iF_{ij}=a_jF_{ji}$. B is convex and has no self-view. A is concave and can see other parts of itself, including part of the same finite arc.
+Cylinder A has inward-facing vacuum normals; B has outward-facing normals. The kernel is symmetric, giving reciprocity $a_iF_{ij}=a_jF_{ji}$. B is convex and has no self-view. A is concave and can see other parts of itself, including part of the same finite arc.
 
 For a source point, let $\phi$ be emission direction relative to its vacuum-facing normal. Integrating the axial direction gives the directional weight $\cos\phi/2$ on $-\pi/2<\phi<\pi/2$. Divide this emitting half-plane at bearings to receiver-arc endpoints and tangent directions to B. The first receiver is unchanged within each resulting interval. Its weight is evaluated exactly as
 
