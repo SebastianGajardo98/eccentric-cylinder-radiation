@@ -42,10 +42,6 @@ def assignment_page():
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
     st.caption("Geometry and the idea of equal-arc segmentation. The 12 A arcs and 8 B arcs are illustrative drawing choices; suitable calculation counts will be assessed in (a) Discretization.")
     st.markdown((ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"))
-    st.subheader("Starting inputs")
-    st.caption("R and T_A are prescribed by the assignment. The other values are chosen inputs for the working case, rather than calculated findings.")
-    st.dataframe(pd.DataFrame({"Parameter": ["R", "T_A", "r", "d", "T_B", "ε_A / ε_B"],
-        "Value": ["1 m (prescribed)", "30 °C (prescribed)", "0.4 m", "0.3 m", "200 °C", "0.6 / 0.8"]}), hide_index=True)
     st.caption("The geometry and temperatures are prescribed steady states. Interactive movement explores parameter changes; it is not a transient-heating model.")
     st.info("Read (a) Model, then (a) Discretization, then (b) Parameter studies and (c) Discussion and conclusions. Interactive simulation is separate from the fixed report results.")
 
@@ -63,8 +59,13 @@ def model_page():
 def discretization_page(selection, cases):
     st.header("(a) Surface discretization")
     requirement("a")
+    st.subheader("Working parameters for part (a)")
+    st.write("The assignment fixes R and T_A. We choose the remaining physical inputs for the refinement study and hold them fixed while changing the surface segment counts.")
+    st.table(pd.DataFrame({"Parameter": ["R", "T_A", "r", "d", "T_B", "ε_A / ε_B"],
+        "Value": ["1 m", "30 °C", "0.4 m", "0.3 m", "200 °C", "0.6 / 0.8"],
+        "Source": ["Prescribed by the assignment", "Prescribed by the assignment", "Chosen for this study", "Chosen for this study", "Chosen for this study", "Chosen surface properties"]}).set_index("Parameter"))
     st.subheader("Independent refinement of A and B")
-    st.write("Hold r = 0.4 m, d = 0.3 m, T_B = 200 °C and emissivities 0.6/0.8 fixed. Refine one surface at a time, retaining equal angular arcs on each surface.")
+    st.write("With these physical parameters fixed, refine one surface at a time, retaining equal angular arcs on each surface.")
     study = st.segmented_control("Refinement evidence", ["Outer surface A", "Inner surface B", "Integration tolerance"], default="Outer surface A", required=True, key="refinement_evidence")
     all_cases = pd.read_csv(MESH / "independent_cases.csv")
     comparisons = pd.read_csv(MESH / "independent_comparisons.csv")
