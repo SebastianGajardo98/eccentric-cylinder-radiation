@@ -118,6 +118,7 @@ def write_reports(selection, cases, profiles, manifest):
         "Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses. The agreed submission scope does not include comparison against analytical solutions.", "",
         "![Geometry and surface segments](../results/studies/geometry_and_segments.png)", "",
         "Figure: working geometry. The displayed 12/8 segment boundaries illustrate the idea of equal-arc discretization; suitable calculation counts are assessed in the refinement study below.", "",
+        (ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"), "",
         report_section(model, "## Part (a): thermodynamic model"), "",
         report_section(selection_text, "## Part (a): discretization selection"), "",
         "![Independent mesh selection](../results/discretization/discretization_selection.png)", "",

@@ -13,7 +13,7 @@ SOURCE_FILES = (
     "run_parameter_studies.py", "plot_studies.py", "run_assignment.py", "build_submission.py",
     "requirements.txt", "requirements-dev.txt", "pytest.ini", "README.md",
 )
-DOC_FILES = ("MODEL.md", "DISCRETIZATION.md", "PARAMETERS.md", "REPORT.md", "REQUIREMENTS.md", "FLUX_ARROWS.md")
+DOC_FILES = ("MODEL.md", "GEOMETRY.md", "DISCRETIZATION.md", "PARAMETERS.md", "REPORT.md", "REQUIREMENTS.md", "FLUX_ARROWS.md")
 
 
 def submission_files():

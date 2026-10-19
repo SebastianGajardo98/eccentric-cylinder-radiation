@@ -40,6 +40,7 @@ def assignment_page():
     ], columns=["Requirement", "Purpose of the section"]).set_index("Requirement"))
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
     st.caption("Geometry and the idea of equal-arc segmentation. The 12 A arcs and 8 B arcs are illustrative drawing choices; suitable calculation counts will be assessed in (a) Discretization.")
+    st.markdown((ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"))
     st.subheader("Starting inputs")
     st.caption("R and T_A are prescribed by the assignment. The other values are chosen inputs for the working case, rather than calculated findings.")
     st.dataframe(pd.DataFrame({"Parameter": ["R", "T_A", "r", "d", "T_B", "ε_A / ε_B"],
@@ -52,6 +53,7 @@ def model_page():
     st.markdown((ROOT / "docs" / "MODEL.md").read_text(encoding="utf-8"))
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
     st.caption("The 12/8 arcs illustrate the method. Calculation counts will be assessed in (a) Discretization. The normals point into the vacuum.")
+    st.markdown((ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"))
 
 
 def discretization_page(selection, cases):
