@@ -35,7 +35,6 @@ elif st.session_state.get("report_section") == "Model":
 with st.sidebar:
     st.subheader("Assignment sections")
     section = st.radio("Navigation", SECTIONS, key="report_section", label_visibility="collapsed")
-    st.caption("R = 1 m · T_A = 30 °C")
 
 try:
     selection, cases, profiles, manifest = load_studies()
