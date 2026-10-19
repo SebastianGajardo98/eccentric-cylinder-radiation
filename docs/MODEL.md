@@ -140,7 +140,13 @@ $$
 
 A midpoint ray identifies the first intersected receiver in each interval. Tangent directions account for the shadow cast by B. Average the resulting directional factors over each source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, maximum norm). The integration tolerance controls this numerical integration and is assessed separately from the surface segment counts in the discretization study.
 
-No row normalization, symmetrization or smoothing is applied to hide integration residuals. For this closed enclosure, checks include nonnegative factors, row closure $\sum_jF_{ij}=1$, and area reciprocity. Their numerical residuals do not by themselves establish convergence of the local flux profile.
+No row normalization, symmetrization or smoothing is applied to hide integration residuals. For this closed enclosure, checks include:
+
+- Nonnegativity, $F_{ij}\geq 0$ **(a radiation fraction cannot be negative)**.
+- Closure, $\sum_jF_{ij}=1$ **(all fractions leaving a patch must add to 1, or 100%, because the enclosure is closed)**.
+- Reciprocity, $a_iF_{ij}=a_jF_{ji}$ **(the area-weighted geometrical exchange is consistent in both directions)**.
+
+Their numerical residuals do not by themselves establish convergence of the local flux profile.
 
 ## 5. Measuring departure from uniform surface flux
 
