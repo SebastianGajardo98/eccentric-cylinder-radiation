@@ -26,25 +26,22 @@ def numerical_evidence(cases):
     st.caption("These check consistency. Convergence of the local flux distribution is assessed separately by mesh refinement.")
 
 
-def overview(selection, cases):
-    baseline = cases[cases.case.eq("baseline")].iloc[0]
+def overview():
     st.header("Assignment overview")
     st.write("The objective is to quantify how the net heat-flux density varies around the inner cylinder B when it is eccentric inside A. The report follows the required model, surface-discretization study and three physical-parameter studies.")
-    with st.container(horizontal=True):
-        st.metric("Selected segments A / B", f"{selection['n_outer']} / {selection['n_inner']}", border=True)
-        st.metric("Baseline maximum deviation", f"{baseline.max_deviation_percent:.3f}%", border=True)
-        st.metric("Required parameter studies", "r, d, T_B", border=True)
+    st.write("First define the model, then compare surface refinements to choose a discretization, and finally use it to study radius, center distance and inner temperature. The starting inputs below define the experiment; calculated results are introduced with their supporting analysis.")
     st.table(pd.DataFrame([
         ["(a) Thermodynamic model and derivation", "Model: assumptions, view factors, radiosity and net-flux equations"],
         ["(a) Equal-segment surface refinement", "Discretization: independent A/B refinement and integration checks"],
-        ["(a) Select a discretization", "96/128 segments, qualified at the 12 geometry points used in (b)"],
-        ["(b) Influence of r, d and T_B", "Three completed studies, each changing one parameter with the selected mesh"],
+        ["(a) Select a discretization", "Use the refinement comparisons and accuracy criteria to justify segment counts for part (b)"],
+        ["(b) Influence of r, d and T_B", "Change one parameter at a time, keeping the discretization chosen in (a)"],
         ["(c) Descriptions, diagrams and commentary", "Geometry, flux profiles, convergence plots, discussion and conclusions"],
         ["Program code for all analyses", "Conclusions and code: downloadable report, data, figures and complete source package"],
-    ], columns=["Requirement", "Evidence on this website"]).set_index("Requirement"))
+    ], columns=["Requirement", "Purpose of the section"]).set_index("Requirement"))
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
-    st.caption("Illustration of geometry and equal-arc segmentation: 12 A arcs and 8 B arcs are drawn for clarity. Final reported calculations use 96 and 128.")
-    st.subheader("Fixed working case")
+    st.caption("Geometry and the idea of equal-arc segmentation. The 12 A arcs and 8 B arcs are illustrative drawing choices; suitable calculation counts will be assessed in (a) Discretization.")
+    st.subheader("Starting inputs")
+    st.caption("R and T_A are prescribed by the assignment. The other values are chosen inputs for the working case, rather than calculated findings.")
     st.dataframe(pd.DataFrame({"Parameter": ["R", "T_A", "r", "d", "T_B", "ε_A / ε_B"],
         "Value": ["1 m (prescribed)", "30 °C (prescribed)", "0.4 m", "0.3 m", "200 °C", "0.6 / 0.8"]}), hide_index=True)
     st.caption("The geometry and temperatures are prescribed steady states. Interactive movement explores parameter changes; it is not a transient-heating model.")
@@ -54,13 +51,12 @@ def overview(selection, cases):
 def model_page():
     st.markdown((ROOT / "docs" / "MODEL.md").read_text(encoding="utf-8"))
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
-    st.caption("Both surfaces use equal angular arcs. The diagram illustrates 12/8 arcs; the selected numerical mesh is 96/128. The normals point into the vacuum.")
+    st.caption("The 12/8 arcs illustrate the method. Calculation counts will be assessed in (a) Discretization. The normals point into the vacuum.")
 
 
 def discretization_page(selection, cases):
     st.header("(a) Surface discretization")
     st.write("Hold r = 0.4 m, d = 0.3 m, T_B = 200 °C and emissivities 0.6/0.8 fixed. Refine one surface at a time, retaining equal angular arcs on each surface.")
-    st.success(f"Selected for part (b): N_A = {selection['n_outer']}, N_B = {selection['n_inner']}, integration tolerance = 1e-8.")
     study = st.segmented_control("Refinement evidence", ["Outer surface A", "Inner surface B", "Integration tolerance"], default="Outer surface A", required=True, key="refinement_evidence")
     all_cases = pd.read_csv(MESH / "independent_cases.csv")
     comparisons = pd.read_csv(MESH / "independent_comparisons.csv")
@@ -111,6 +107,8 @@ def discretization_page(selection, cases):
         extra = pd.read_csv(MESH / "worst_case_comparisons.csv")
         st.dataframe(extra[extra.fine.eq("further_refined")], hide_index=True, width="stretch")
     st.image(str(MESH / "discretization_selection.png"), width="stretch")
+    st.subheader("Discretization selected for part (b)")
+    st.success(f"Based on the refinement comparisons above: N_A = {selection['n_outer']}, N_B = {selection['n_inner']}, integration tolerance = 1e-8.")
     st.subheader("Selected-mesh working result")
     baseline = cases[cases.case.eq("baseline")]
     st.dataframe(baseline[["mean_inner_flux_w_m2", "max_deviation_percent", "peak_to_peak_percent", "heat_inner_w_m"]], column_config=number_columns(), hide_index=True, width="stretch")

@@ -1,9 +1,5 @@
 # Working parameters and discretization selection
 
-## Decision
-
-Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with source-arc integration tolerance **1e-8**, for the documented final parameter-study points. This is a recommended study setting; the interactive app keeps Preview and Custom resolutions available.
-
 ## Working parameters
 
 | Parameter | Baseline | Reason |
@@ -67,6 +63,10 @@ At 96/64 baseline resolution, tightening source integration from 1e-6 through 1e
 Temperature checks at 60, 200 and 400 C, for both baseline and e = 0.9 geometry, leave the normalized nonuniformity unchanged to approximately 2e-12 percentage points. This agrees with the linear fixed-emissivity model: temperature scales absolute flux through the difference in fourth powers. It does not justify temperature-independent results if material emissivity varies with temperature.
 
 Across the selected-mesh qualification and reference cases, the maximum relative enclosure energy imbalance is 4.470e-12, maximum row-closure residual is 7.883e-15, and maximum scaled reciprocity residual is 5.773e-08.
+
+## Decision based on the refinement evidence
+
+Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with source-arc integration tolerance **1e-8**, for the documented final parameter-study points. This is a recommended study setting; the interactive app keeps Preview and Custom resolutions available.
 
 ## Selected-mesh baseline result
 

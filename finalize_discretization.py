@@ -42,8 +42,6 @@ def main():
     baseline = cases[(cases.point == "baseline") & (cases.mesh == "candidate")].iloc[0]
     lines = [
         "# Working parameters and discretization selection", "",
-        "## Decision", "",
-        "Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with source-arc integration tolerance **1e-8**, for the documented final parameter-study points. This is a recommended study setting; the interactive app keeps Preview and Custom resolutions available.", "",
         "## Working parameters", "",
         "| Parameter | Baseline | Reason |", "| --- | --- | --- |",
         "| Outer radius R | 1 m | Prescribed by the assignment |",
@@ -76,6 +74,8 @@ def main():
         lines.append(f"- {row.point}: profile change {row.profile_change_percent:.3e}%; peak-to-peak change {row.peak_to_peak_change_pp:.3e} percentage points.")
     lines += ["", "Temperature checks at 60, 200 and 400 C, for both baseline and e = 0.9 geometry, leave the normalized nonuniformity unchanged to approximately 2e-12 percentage points. This agrees with the linear fixed-emissivity model: temperature scales absolute flux through the difference in fourth powers. It does not justify temperature-independent results if material emissivity varies with temperature.", "",
               f"Across the selected-mesh qualification and reference cases, the maximum relative enclosure energy imbalance is {cases.energy_imbalance_relative.max():.3e}, maximum row-closure residual is {cases.closure_max.max():.3e}, and maximum scaled reciprocity residual is {cases.reciprocity_relative_max.max():.3e}.", "",
+              "## Decision based on the refinement evidence", "",
+              "Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with source-arc integration tolerance **1e-8**, for the documented final parameter-study points. This is a recommended study setting; the interactive app keeps Preview and Custom resolutions available.", "",
               "## Selected-mesh baseline result", "",
               f"- Mean inner flux: {baseline.mean_inner_flux_w_m2:.6f} W/m^2.",
               f"- Maximum relative deviation: {baseline.max_deviation_percent:.6f}%.",

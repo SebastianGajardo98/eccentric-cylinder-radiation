@@ -83,7 +83,7 @@ def directional_comparison(result):
 
 
 if section == "Overview":
-    report_ui.overview(selection, cases)
+    report_ui.overview()
 elif section == "Model":
     report_ui.model_page()
 elif section == "(a) Discretization":

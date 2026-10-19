@@ -87,7 +87,7 @@ $$
 =\frac{\sin\phi_2-\sin\phi_1}{2}.
 $$
 
-A midpoint ray identifies the first intersected receiver in each interval. Tangent directions account for the shadow cast by B. Average the resulting directional factors over each source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, maximum norm). The selected integration tolerance is $10^{-8}$ and is assessed separately from the surface segment counts.
+A midpoint ray identifies the first intersected receiver in each interval. Tangent directions account for the shadow cast by B. Average the resulting directional factors over each source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, maximum norm). The integration tolerance controls this numerical integration and is assessed separately from the surface segment counts in the discretization study.
 
 No row normalization, symmetrization or smoothing is applied to hide integration residuals. For this closed enclosure, checks include nonnegative factors, row closure $\sum_jF_{ij}=1$, and area reciprocity. Their numerical residuals do not by themselves establish convergence of the local flux profile.
 

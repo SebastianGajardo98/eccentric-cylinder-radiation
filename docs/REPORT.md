@@ -8,7 +8,7 @@ Quantify deviation from uniform net heat-flux density on cylinder B using view f
 
 ![Geometry and surface segments](../results/studies/geometry_and_segments.png)
 
-Figure: baseline geometry. The displayed 12/8 segment boundaries illustrate equal-arc discretization only; the selected calculation uses 96/128 segments.
+Figure: working geometry. The displayed 12/8 segment boundaries illustrate the idea of equal-arc discretization; suitable calculation counts are assessed in the refinement study below.
 
 ## Part (a): thermodynamic model
 
@@ -99,7 +99,7 @@ $$
 =\frac{\sin\phi_2-\sin\phi_1}{2}.
 $$
 
-A midpoint ray identifies the first intersected receiver in each interval. Tangent directions account for the shadow cast by B. Average the resulting directional factors over each source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, maximum norm). The selected integration tolerance is $10^{-8}$ and is assessed separately from the surface segment counts.
+A midpoint ray identifies the first intersected receiver in each interval. Tangent directions account for the shadow cast by B. Average the resulting directional factors over each source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, maximum norm). The integration tolerance controls this numerical integration and is assessed separately from the surface segment counts in the discretization study.
 
 No row normalization, symmetrization or smoothing is applied to hide integration residuals. For this closed enclosure, checks include nonnegative factors, row closure $\sum_jF_{ij}=1$, and area reciprocity. Their numerical residuals do not by themselves establish convergence of the local flux profile.
 
@@ -145,10 +145,6 @@ Local net flux depends on both emission and irradiation from the whole enclosure
 
 
 ## Part (a): discretization selection
-
-### Decision
-
-Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with source-arc integration tolerance **1e-8**, for the documented final parameter-study points. This is a recommended study setting; the interactive app keeps Preview and Custom resolutions available.
 
 ### Working parameters
 
@@ -213,6 +209,10 @@ At 96/64 baseline resolution, tightening source integration from 1e-6 through 1e
 Temperature checks at 60, 200 and 400 C, for both baseline and e = 0.9 geometry, leave the normalized nonuniformity unchanged to approximately 2e-12 percentage points. This agrees with the linear fixed-emissivity model: temperature scales absolute flux through the difference in fourth powers. It does not justify temperature-independent results if material emissivity varies with temperature.
 
 Across the selected-mesh qualification and reference cases, the maximum relative enclosure energy imbalance is 4.470e-12, maximum row-closure residual is 7.883e-15, and maximum scaled reciprocity residual is 5.773e-08.
+
+### Decision based on the refinement evidence
+
+Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with source-arc integration tolerance **1e-8**, for the documented final parameter-study points. This is a recommended study setting; the interactive app keeps Preview and Custom resolutions available.
 
 ### Selected-mesh baseline result
 
