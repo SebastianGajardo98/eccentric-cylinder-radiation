@@ -2,6 +2,17 @@
 
 ## 1. Physical assumptions and geometry
 
+| Term | Plain meaning |
+| --- | --- |
+| Infinitely long | We exclude effects near the ends of the cylinders. |
+| Isothermal | Every location on a given cylinder has the same temperature. A and B can have different temperatures. |
+| Prescribed temperature | The temperature is a specified input and is maintained at that value. |
+| Opaque | Radiation cannot pass through the cylinder wall. |
+| Diffuse | Emission and reflection follow a diffuse angular distribution, rather than mirror-like reflection. |
+| Gray | Emissivity is treated as independent of radiation wavelength. |
+| Uniform emissivity | A given cylinder has the same emissivity everywhere around its surface. |
+| Temperature-independent emissivity | We keep emissivity unchanged when temperature changes. |
+
 Cylinder A has prescribed radius $R=1$ m and temperature $T_A=303.15$ K (30 °C). Cylinder B has radius $0<r<R$ and prescribed $T_B>T_A$. Both surfaces are infinitely long, isothermal, opaque, diffuse-gray bodies with uniform, temperature-independent emissivities. The gap is a vacuum: only surface-to-surface radiation is included. There is no transient temperature equation because both temperatures are prescribed.
 
 The center of A is $O_A=(0,0)$. The center of B is $O_B=(x_B,0)$, where $x_B=+d$ on the right or $-d$ on the left. The center distance $d=|x_B|$ satisfies $0<d<R-r$ for eccentric cases. The concentric case $d=0$ is retained as a numerical reference. Normalized eccentricity is $e=d/(R-r)$. Angles on B are measured counterclockwise from the fixed positive x-axis: 0° right, 90° top, 180° left and 270° bottom. Mirroring the position mirrors the flux profile without changing scalar heat rates or nonuniformity measures.
