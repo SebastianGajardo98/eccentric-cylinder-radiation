@@ -19,7 +19,7 @@ python -m pip install -r requirements.txt
 python -m streamlit run streamlit_app.py
 ```
 
-The website opens on Assignment. Its Model, (a) Discretization, (b) Parameter studies and Conclusions sections use completed recorded results. Interactive simulation is separate: sidebar changes do not modify the reported studies. Eight surface arrows, colors and relative profiles explore local net flux; a fixed-axis directional comparison is available as an optional detail.
+The website opens on Assignment. Its Model, (a) Discretization, (b) Parameter studies and (c) Discussion and conclusions sections use completed recorded results. Part (c) also provides the report, data and code downloads. Interactive simulation is separate: sidebar changes do not modify the reported studies. Eight surface arrows, colors and relative profiles explore local net flux; a fixed-axis directional comparison is available as an optional detail.
 
 ## Reproduce all results
 

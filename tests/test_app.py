@@ -22,5 +22,5 @@ def test_report_navigation_and_all_required_studies_render():
         assert not app.exception and not app.error
         assert len(app.dataframe[0].value) == count
     app.button(key="next_section").click().run()
-    assert app.radio(key="report_section").value == "Conclusions and code"
+    assert app.radio(key="report_section").value == "(c) Discussion and conclusions"
     assert not app.exception and not app.error

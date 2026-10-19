@@ -10,8 +10,8 @@ The scope is the numerical view-factor assignment supplied for Sebastian Alberto
 | Study r with the same selected mesh | Five radii at fixed center distance, temperature and emissivities; absolute and relative profiles, trend, summary table and discussion | (b) Inner radius r; results/studies/cases.csv and profiles.csv |
 | Study d with the same selected mesh | Seven center distances at fixed radius, temperature and emissivities; concentric reference identified separately | (b) Center distance d |
 | Study T_B with the same selected mesh | Six temperatures at fixed geometry and emissivities; flux growth and unchanged normalized shape explained | (b) Inner temperature T_B |
-| Descriptions, diagrams and commentary | Annotated geometry and segment diagram, convergence evidence, angular profiles, parameter-trend plots, interpretation and limitations | Model, (a), (b), Conclusions; docs/REPORT.md |
-| Program code for every analysis | Solver, all study runners, plot/report generators, website source, requirements, tests and a file-hash manifest | Conclusions and code; downloadable submission ZIP |
+| Descriptions, diagrams and commentary | Annotated geometry and segment diagram, convergence evidence, angular profiles, parameter-trend plots, interpretation and limitations | Model, (a), (b), and (c) Discussion and conclusions; docs/REPORT.md |
+| Program code for every analysis | Solver, all study runners, plot/report generators, website source, requirements, tests and a file-hash manifest | (c) Discussion and conclusions; downloadable submission ZIP |
 
 ## Simplification applied during the review
 

@@ -24,9 +24,11 @@ st.set_page_config(page_title="Eccentric cylinder radiation", layout="wide", ini
 st.title("Radiation between eccentric cylinders")
 st.caption("Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer · Numerical view-factor analysis")
 
-SECTIONS = ["Assignment", "Model", "(a) Discretization", "(b) Parameter studies", "Conclusions and code", "Interactive simulation"]
+SECTIONS = ["Assignment", "Model", "(a) Discretization", "(b) Parameter studies", "(c) Discussion and conclusions", "Interactive simulation"]
 if st.session_state.get("report_section") == "Overview":
     st.session_state.report_section = "Assignment"
+elif st.session_state.get("report_section") == "Conclusions and code":
+    st.session_state.report_section = "(c) Discussion and conclusions"
 with st.sidebar:
     st.subheader("Assignment sections")
     section = st.radio("Navigation", SECTIONS, key="report_section", label_visibility="collapsed")
@@ -92,7 +94,7 @@ elif section == "(a) Discretization":
     report_ui.discretization_page(selection, cases)
 elif section == "(b) Parameter studies":
     report_ui.parameters_page(cases, profiles)
-elif section == "Conclusions and code":
+elif section == "(c) Discussion and conclusions":
     report_ui.conclusions_page(selection, cases, manifest)
 else:
     st.header("Interactive steady-state simulation")

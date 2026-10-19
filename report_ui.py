@@ -35,8 +35,8 @@ def assignment_page():
         ["(a) Equal-segment surface refinement", "Discretization: independent A/B refinement and integration checks"],
         ["(a) Select a discretization", "Use the refinement comparisons and accuracy criteria to justify segment counts for part (b)"],
         ["(b) Influence of r, d and T_B", "Change one parameter at a time, keeping the discretization chosen in (a)"],
-        ["(c) Descriptions, diagrams and commentary", "Geometry, flux profiles, convergence plots, discussion and conclusions"],
-        ["Program code for all analyses", "Conclusions and code: downloadable report, data, figures and complete source package"],
+        ["(c) Descriptions, diagrams and commentary", "Explanations and diagrams accompany Model, (a) and (b); (c) Discussion and conclusions brings the findings together"],
+        ["Program code for all analyses", "(c) Discussion and conclusions: downloadable report, data, figures and complete source package"],
     ], columns=["Requirement", "Purpose of the section"]).set_index("Requirement"))
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
     st.caption("Geometry and the idea of equal-arc segmentation. The 12 A arcs and 8 B arcs are illustrative drawing choices; suitable calculation counts will be assessed in (a) Discretization.")
@@ -154,8 +154,8 @@ def parameters_page(cases, profiles):
 
 
 def conclusions_page(selection, cases, manifest):
-    st.header("Conclusions and program code")
-    st.write("Descriptions and commentary for requirement (c) accompany the model and every analysis in (a) and (b). The following conclusions refer to the stated parameter ranges and fixed emissivities.")
+    st.header("(c) Discussion and conclusions")
+    st.write("Part (c) brings together the interpretation of the calculations. Its descriptions, diagrams and commentary also accompany Model and the analyses in (a) and (b). The conclusions below refer to the stated parameter ranges and fixed emissivities.")
     for study in STUDIES:
         st.subheader(STUDIES[study][0])
         st.write(discussion(cases, study))
