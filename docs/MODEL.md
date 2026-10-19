@@ -45,13 +45,28 @@ $$
 G_i=\sum_jF_{ij}J_j.
 $$
 
-Substituting into the radiosity equation gives one coupled linear equation per surface arc:
+**Step 1: Substitute the expression for incoming irradiation**
+
+In the radiosity equation, replace $G_i$ with $\sum_jF_{ij}J_j$. The outgoing radiation is still the surface's own emission plus reflected incoming radiation:
+
+$$
+J_i=\epsilon_i\sigma T_i^4
++(1-\epsilon_i)\underbrace{\sum_jF_{ij}J_j}_{G_i}.
+$$
+
+**Step 2: Collect the unknown radiosities on the left**
+
+Subtract the reflected contribution, $(1-\epsilon_i)\sum_jF_{ij}J_j$, from both sides. The known thermal-emission term remains on the right:
 
 $$
 J_i-(1-\epsilon_i)\sum_jF_{ij}J_j=\epsilon_i\sigma T_i^4.
 $$
 
-With $\mathcal E=\operatorname{diag}(\epsilon_i)$, solve
+Write this equation for every surface arc $i$. The equations are **coupled** because the outgoing radiation from one arc depends on radiation leaving other arcs. They are **linear in the unknown radiosities** $J_j$: these unknowns appear only to the first power, multiplied by known coefficients. The prescribed temperatures $T_i$ are known inputs, even though they appear to the fourth power.
+
+**Matrix form: solve all the arc equations together**
+
+The following is a compact way to collect the equations above. Here $I$ is the identity matrix, $F$ contains the view factors, $\mathcal E=\operatorname{diag}(\epsilon_i)$ stores the emissivities on its diagonal, and $\mathbf J$ is the list of unknown radiosities. Solve
 
 $$
 \left[I-(I-\mathcal E)F\right]\mathbf J
