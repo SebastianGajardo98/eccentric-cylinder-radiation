@@ -106,7 +106,7 @@ Diffuse-gray radiosity and irradiation are described in the [COMSOL surface-radi
 | $p_i$, $p_j$ | Points on the emitting arc $i$ and receiving arc $j$. |
 | $\rho$ | Distance between the two points in the cross-section (m). |
 | $z$ | Separation between the points along the cylinder axis, perpendicular to the cross-section (m). |
-| $\beta_i$, $\beta_j$ | Angles in the cross-section between the connecting line and the surface normals pointing into the vacuum. |
+| $\beta_i$, $\beta_j$ | Orientation: angles in the cross-section between the connecting line and the surface normals pointing into the vacuum. |
 | $V(p_i,p_j)$ | Visibility: 1 when the points have an unobstructed connection and face each other; 0 otherwise. |
 | $a_i$ | Area of arc $i$ per unit axial length (m²/m). |
 | $F_{ij}$ | Fraction of diffuse radiation leaving arc $i$ that directly reaches arc $j$. |
