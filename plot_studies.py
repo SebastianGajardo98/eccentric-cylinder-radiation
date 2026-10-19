@@ -114,6 +114,9 @@ def write_reports(selection, cases, profiles, manifest):
         return heading+"\n"+body
     report = ["# Radiative heat transfer between eccentric cylinders", "",
         "Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer (Radiative Heat Transfer)", "",
+        "## Assignment statement", "",
+        (ROOT / "docs" / "ASSIGNMENT.md").read_text(encoding="utf-8"), "",
+        r"Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are written as $T_A$ and $T_B$ in the report.", "",
         "## Objective and numerical scope", "",
         "Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses. The agreed submission scope does not include comparison against analytical solutions.", "",
         "![Geometry and surface segments](../results/studies/geometry_and_segments.png)", "",

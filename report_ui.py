@@ -28,8 +28,8 @@ def numerical_evidence(cases):
 
 def assignment_page():
     st.header("Assignment")
-    st.write("How does the net heat-flux density vary around the inner cylinder B when it is eccentric inside A? The report follows the required model, surface-discretization study and three physical-parameter studies.")
-    st.write("First define the model, then compare surface refinements to choose a discretization, and finally use it to study radius, center distance and inner temperature. The starting inputs below define the experiment; calculated results are introduced with their supporting analysis.")
+    st.markdown((ROOT / "docs" / "ASSIGNMENT.md").read_text(encoding="utf-8"))
+    st.caption(r"Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are written as $T_A$ and $T_B$ elsewhere in the app.")
     st.table(pd.DataFrame([
         ["(a) Thermodynamic model and derivation", "Model: assumptions, view factors, radiosity and net-flux equations"],
         ["(a) Equal-segment surface refinement", "Discretization: independent A/B refinement and integration checks"],
