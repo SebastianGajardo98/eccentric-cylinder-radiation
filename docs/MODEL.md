@@ -37,7 +37,9 @@ For an opaque gray surface, absorptivity equals emissivity. Of the irradiation $
 The total outgoing radiosity is therefore
 
 $$
-J_i=\epsilon_i\sigma T_i^4+(1-\epsilon_i)G_i.
+J_i=
+\underbrace{\epsilon_i\sigma T_i^4}_{\text{emitted by the surface}}
++\underbrace{(1-\epsilon_i)G_i}_{\text{reflected incoming radiation}}.
 \tag{2}
 $$
 
