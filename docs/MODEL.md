@@ -112,7 +112,7 @@ Diffuse-gray radiosity and irradiation are described in the [COMSOL surface-radi
 | $F_{ij}$ | Fraction of diffuse radiation leaving arc $i$ that directly reaches arc $j$. |
 | $ds_i$, $ds_j$ | Infinitesimal (arbitrarily small) arc-length elements on arcs $i$ and $j$ (m), summed by the double integral. |
 
-The three-dimensional diffuse exchange kernel is $\cos\theta_i\cos\theta_j/(\pi s^2)$, where $s$ is the full distance between the points and $s^2=\rho^2+z^2$. Each projection of a transverse surface normal contributes $\rho/s$. Integration over the infinite axial direction yields
+The three-dimensional diffuse exchange kernel is $\cos\theta_i\cos\theta_j/(\pi s^2)$, where $s$ is the full distance between the points and $s^2=\rho^2+z^2$. Each projection of a transverse surface normal contributes $\rho/s$. Integration over the infinite axial direction yields the following result. Equation (9) accounts for receiving points along the entire cylinder length when calculating the view factor.
 
 $$
 \int_{-\infty}^{\infty}
