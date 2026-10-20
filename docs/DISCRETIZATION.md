@@ -116,9 +116,9 @@ Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with sour
 
 ## Scope and reproducibility
 
-The selection is supported at the specified geometry points with emissivities 0.6/0.8. It is not a rigorous error bound, a proof for all continuous intermediate values, or qualification of arbitrary radius/offset/emissivity combinations. The site remains interactive; user-selected cases outside the documented points can be checked using independent refinement.
+The selection is supported at the 12 documented geometry points with emissivities 0.6/0.8. The comparisons are differences between meshes, not rigorous error bounds, and they do not qualify other radius, offset or emissivity combinations. The interactive simulation uses a coarser mesh and is for exploration only.
 
-The numerical scope follows the requested assignment requirements. The interpretation of all three required parameter studies is presented in PARAMETERS.md.
+The interpretation of all three parameter studies is presented in PARAMETERS.md.
 
 Run the following from the repository directory (local caches in tmp/ make repeat runs faster):
 

@@ -51,7 +51,6 @@ def requirement(part):
 def assignment_page():
     st.header("Assignment")
     st.markdown((ROOT / "docs" / "ASSIGNMENT.md").read_text(encoding="utf-8"))
-    st.caption(r"Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are written as $T_A$ and $T_B$ elsewhere in the app.")
     st.subheader("The following is required")
     for part, text in REQUIREMENTS.items():
         st.markdown(f"**({part})** {text}")

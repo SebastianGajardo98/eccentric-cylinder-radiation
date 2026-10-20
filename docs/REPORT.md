@@ -4,20 +4,18 @@ Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer (Radiative Heat Transf
 
 ## Assignment statement
 
-Inside an infinite cylinder A of radius $R = 1$ m, maintained at constant temperature $\vartheta_A = 30$ °C, a second, smaller infinite cylinder B of radius $r$, ($r < R$), is placed, which is also maintained on constant temperature $\vartheta_B > \vartheta_A$. Both cylinders are diffuse-gray bodies with emissivity coefficients $\varepsilon_A$ and $\varepsilon_B$ and the space between them is a vacuum.
+Inside an infinite cylinder A of radius $R = 1$ m, maintained at constant temperature $T_A = 30$ °C, a second, smaller infinite cylinder B of radius $r$, ($r < R$), is placed, which is also maintained on constant temperature $T_B > T_A$. Both cylinders are diffuse-gray bodies with emissivity coefficients $\varepsilon_A$ and $\varepsilon_B$ and the space between them is a vacuum.
 
 If the cylinders are arranged concentrically or if both are black bodies, a heat flux density on the surface of cylinder B is uniform, however, if both cylinders are diffuse-gray bodies and the smaller cylinder B is placed at distance $d$, $0 < d < R - r$ from the centre of cylinder A, heat flux density on the cylinder B is not uniformly distributed.
 
 The task is to analyse the deviation from uniform surface flux density when the cylinder B is placed eccentrically within the cylinder A, using a view factor method.
 
 
-Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are written as $T_A$ and $T_B$ in the report.
-
 ## The following is required
 
-**(a)** For a selected combination of parameters $r$, $d$, and $\vartheta_B$, analyse the effect of discretizing the surfaces of cylinders A and B into equal segments (the number of elements on cylinders A and B need not be equal) on the deviation from uniform surface flux density on cylinder B. The analysis must include the derivation of the appropriate thermodynamic model for radiative heat transfer.
+**(a)** For a selected combination of parameters $r$, $d$, and $T_B$, analyse the effect of discretizing the surfaces of cylinders A and B into equal segments (the number of elements on cylinders A and B need not be equal) on the deviation from uniform surface flux density on cylinder B. The analysis must include the derivation of the appropriate thermodynamic model for radiative heat transfer.
 
-**(b)** Using the same thermodynamic model and the selected discretization, analyse the influence of parameters $r$, $d$, and $\vartheta_B$, on the deviation from uniform surface density of cylinder B.
+**(b)** Using the same thermodynamic model and the selected discretization, analyse the influence of parameters $r$, $d$, and $T_B$, on the deviation from uniform surface density of cylinder B.
 
 **(c)** Supplement all analyses with appropriate descriptions, diagrams, and commentary, and compare the results with analytical solutions, if find appropriate.
 
@@ -49,7 +47,7 @@ The normal arrows show surface orientation. Their lengths do not represent heat-
 
 **Assignment requirement (a)**
 
-> For a selected combination of parameters $r$, $d$, and $\vartheta_B$, analyse the effect of discretizing the surfaces of cylinders A and B into equal segments (the number of elements on cylinders A and B need not be equal) on the deviation from uniform surface flux density on cylinder B. The analysis must include the derivation of the appropriate thermodynamic model for radiative heat transfer.
+> For a selected combination of parameters $r$, $d$, and $T_B$, analyse the effect of discretizing the surfaces of cylinders A and B into equal segments (the number of elements on cylinders A and B need not be equal) on the deviation from uniform surface flux density on cylinder B. The analysis must include the derivation of the appropriate thermodynamic model for radiative heat transfer.
 
 ### 1. Physical assumptions and geometry
 
@@ -267,7 +265,7 @@ Local net flux depends on both emission and irradiation from the whole enclosure
 
 **Assignment requirement (a)**
 
-> For a selected combination of parameters $r$, $d$, and $\vartheta_B$, analyse the effect of discretizing the surfaces of cylinders A and B into equal segments (the number of elements on cylinders A and B need not be equal) on the deviation from uniform surface flux density on cylinder B. The analysis must include the derivation of the appropriate thermodynamic model for radiative heat transfer.
+> For a selected combination of parameters $r$, $d$, and $T_B$, analyse the effect of discretizing the surfaces of cylinders A and B into equal segments (the number of elements on cylinders A and B need not be equal) on the deviation from uniform surface flux density on cylinder B. The analysis must include the derivation of the appropriate thermodynamic model for radiative heat transfer.
 
 ### Working parameters
 
@@ -385,9 +383,9 @@ Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with sour
 
 ### Scope and reproducibility
 
-The selection is supported at the specified geometry points with emissivities 0.6/0.8. It is not a rigorous error bound, a proof for all continuous intermediate values, or qualification of arbitrary radius/offset/emissivity combinations. The site remains interactive; user-selected cases outside the documented points can be checked using independent refinement.
+The selection is supported at the 12 documented geometry points with emissivities 0.6/0.8. The comparisons are differences between meshes, not rigorous error bounds, and they do not qualify other radius, offset or emissivity combinations. The interactive simulation uses a coarser mesh and is for exploration only.
 
-The numerical scope follows the requested assignment requirements. The interpretation of all three required parameter studies is presented in PARAMETERS.md.
+The interpretation of all three parameter studies is presented in PARAMETERS.md.
 
 Run the following from the repository directory (local caches in tmp/ make repeat runs faster):
 
@@ -411,7 +409,7 @@ Raw case tables, angular profiles, comparison tables, source fingerprints, and s
 
 **Assignment requirement (b)**
 
-> Using the same thermodynamic model and the selected discretization, analyse the influence of parameters $r$, $d$, and $\vartheta_B$, on the deviation from uniform surface density of cylinder B.
+> Using the same thermodynamic model and the selected discretization, analyse the influence of parameters $r$, $d$, and $T_B$, on the deviation from uniform surface density of cylinder B.
 
 All cases use N_A = 96, N_B = 128, source integration tolerance 1e-8, R = 1 m, T_A = 30 C, epsilon_A = 0.6 and epsilon_B = 0.8. Only the named parameter changes within each study. All reported q values are segment averages.
 

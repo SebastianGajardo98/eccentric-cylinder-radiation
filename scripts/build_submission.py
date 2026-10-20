@@ -8,7 +8,7 @@ import zipfile
 from study_data import DATA, MESH, ROOT, SCRIPTS, load_studies
 
 PROJECT_FILES = ("requirements.txt", "requirements-dev.txt", "pytest.ini", "README.md", ".streamlit/config.toml")
-DOC_FILES = ("ASSIGNMENT.md", "MODEL.md", "GEOMETRY.md", "COMPARISON.md", "CODE_GUIDE.md", "DISCRETIZATION.md", "PARAMETERS.md", "REPORT.md", "REPORT.pdf", "REQUIREMENTS.md", "FLUX_ARROWS.md")
+DOC_FILES = ("ASSIGNMENT.md", "MODEL.md", "GEOMETRY.md", "COMPARISON.md", "CODE_GUIDE.md", "DISCRETIZATION.md", "PARAMETERS.md", "REPORT.md", "REPORT.pdf", "REQUIREMENTS.md")
 
 
 def submission_files():

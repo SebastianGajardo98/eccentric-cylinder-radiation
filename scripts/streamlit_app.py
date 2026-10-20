@@ -31,12 +31,6 @@ st.caption("Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer · Numeric
 SIMULATION_MESH = (24, 32)
 SIMULATION_TOLERANCE = 1e-6
 SECTIONS = ["Assignment", "(a) Model", "(a) Discretization", "(b) Parameter studies", "(c) Discussion and conclusions", "Interactive simulation"]
-if st.session_state.get("report_section") == "Overview":
-    st.session_state.report_section = "Assignment"
-elif st.session_state.get("report_section") == "Conclusions and code":
-    st.session_state.report_section = "(c) Discussion and conclusions"
-elif st.session_state.get("report_section") == "Model":
-    st.session_state.report_section = "(a) Model"
 with st.sidebar:
     st.subheader("Assignment sections")
     section = st.radio("Navigation", SECTIONS, key="report_section", label_visibility="collapsed")
@@ -60,7 +54,7 @@ def cached_factors(geometry, tolerance, fingerprint):
 
 
 def directional_comparison(result):
-    _, values = arrow_samples(result, "net", 8)
+    _, values = arrow_samples(result, 8)
     mean = result.metrics["mean_inner_flux_w_m2"]
     directions = ["Right", "Upper right", "Top", "Upper left", "Left", "Lower left", "Bottom", "Lower right"]
     with st.container(horizontal=True):
@@ -129,7 +123,7 @@ else:
         st.metric("D_max", f"{metrics['max_deviation_percent']:.3f}%", border=True)
         st.metric("D_pp", f"{metrics['peak_to_peak_percent']:.3f}%", border=True)
     st.caption(f"Calculated with {na} equal segments on A and {nb} on B so that each change takes only a moment. The report tables use the finer, qualified {selection['n_outer']}/{selection['n_inner']} mesh, so D_max and D_pp here are slightly lower: by about 0.1 percentage points at the starting arrangement and up to about one point at the smallest gaps.")
-    figure = geometry_chart(result, representation="net", detail=False, arrow_count=8, uniform_reference=False, length_contrast=1)
+    figure = geometry_chart(result, arrow_count=8)
     st.pyplot(figure, width="stretch")
     plt.close(figure)
     st.caption(f"A and B share the same physical scale. Center distance d = {geometry.d:.3f} m; B center x = {geometry.center_x:+.3f} m. Minimum gap = {1-radius-geometry.d:.3f} m. The eight outward arrows interpolate local net flux between segment averages; they are not individual radiation rays.")

@@ -119,7 +119,6 @@ def write_reports(selection, cases, profiles, manifest):
         "Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer (Radiative Heat Transfer)", "",
         "## Assignment statement", "",
         (ROOT / "docs" / "ASSIGNMENT.md").read_text(encoding="utf-8"), "",
-        r"Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are written as $T_A$ and $T_B$ in the report.", "",
         "## The following is required", "",
         *[f"**({part})** {text}\n" for part, text in REQUIREMENTS.items()],
         "## Objective and numerical scope", "",
