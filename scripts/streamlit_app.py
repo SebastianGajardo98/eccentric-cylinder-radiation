@@ -142,22 +142,22 @@ else:
     report_ui.source_note("Displays the calculated angular profiles; the 4096-angle setting is used only in the report's refinement comparisons", "app_charts.py", "streamlit_app.py")
     with st.expander("Compare eight directions on a fixed flux scale"):
         directional_comparison(result)
-    with st.expander("Numerical checks and current simulation data"):
-        st.write(f"Q′_B = {metrics['heat_inner_w_m']:.3f} W/m; Q′_A = {metrics['heat_outer_w_m']:.3f} W/m.")
-        st.json({**factors.diagnostics, "relative_energy_imbalance": metrics["energy_imbalance_relative"]})
-        if factors.diagnostics["reciprocity_relative_max"] > 1e-5 or (metrics["energy_imbalance_relative"] or 0) > 1e-5:
-            st.warning("Numerical residuals are elevated for this arrangement; treat small flux differences with caution.")
-        export = pd.DataFrame({"angle on B (deg)": frame.angle_deg, "q_B (W/m2)": frame.flux_w_m2.round(6),
-                               "deviation from mean (%)": frame.deviation_percent.round(9)+0.0})
-        export = export.assign(**{"r (m)": radius, "d (m)": round(geometry.d, 6), "x_B (m)": round(geometry.center_x, 6),
-                                  "T_A (C)": 30.0, "T_B (C)": temperature, "eps_A": epsilon_a, "eps_B": epsilon_b, "N_A": na, "N_B": nb})
+    # Shown only if this arrangement's view factors or energy balance are numerically suspect.
+    if factors.diagnostics["reciprocity_relative_max"] > 1e-5 or (metrics["energy_imbalance_relative"] or 0) > 1e-5:
+        st.warning("Numerical residuals are elevated for this arrangement; treat small flux differences with caution.")
+    export = pd.DataFrame({"angle on B (deg)": frame.angle_deg, "q_B (W/m2)": frame.flux_w_m2.round(6),
+                           "deviation from mean (%)": frame.deviation_percent.round(9)+0.0})
+    export = export.assign(**{"r (m)": radius, "d (m)": round(geometry.d, 6), "x_B (m)": round(geometry.center_x, 6),
+                              "T_A (C)": 30.0, "T_B (C)": temperature, "eps_A": epsilon_a, "eps_B": epsilon_b, "N_A": na, "N_B": nb})
+    segments = [f"A{i+1}" for i in range(na)] + [f"B{i+1}" for i in range(nb)]
+    matrix = pd.DataFrame(factors.factors, index=pd.Index(segments, name="from (row) / to (column)"), columns=segments)
+    with st.container(horizontal=True):
         st.download_button("Download this simulation (CSV)", export.to_csv(index=False), "simulation_profile.csv", "text/csv")
-        segments = [f"A{i+1}" for i in range(na)] + [f"B{i+1}" for i in range(nb)]
-        matrix = pd.DataFrame(factors.factors, index=pd.Index(segments, name="from (row) / to (column)"), columns=segments)
         st.download_button("Download view factors (CSV)", matrix.to_csv(), "view_factors.csv", "text/csv")
-        st.caption(f"View factors: each row is an emitting segment and each column a receiving segment. "
-                   f"A1–A{na} and B1–B{nb} are numbered counterclockwise from 0° (the right side).")
-    st.caption(f"This page is for exploration. The report results use the {selection['n_outer']}/{selection['n_inner']} mesh, qualified at the documented report points with ε_A/ε_B = 0.6/0.8.")
+    st.caption(f"View factors: each row is an emitting segment and each column a receiving segment. "
+               f"A1–A{na} and B1–B{nb} are numbered counterclockwise from 0° (the right side).")
+    st.caption(f"This page is for exploration: it calculates with {na} segments on A and {nb} on B, and the downloaded files use the same mesh. "
+               f"The report results in (a) and (b) use the finer {selection['n_outer']}/{selection['n_inner']} mesh, qualified at the documented report points with ε_A/ε_B = 0.6/0.8.")
 
 if section != "Interactive simulation":
     following = SECTIONS[SECTIONS.index(section)+1]
