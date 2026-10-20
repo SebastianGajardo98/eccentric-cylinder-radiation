@@ -36,7 +36,7 @@ with st.sidebar:
     section = st.radio("Navigation", SECTIONS, key="report_section", label_visibility="collapsed")
 
 try:
-    selection, cases, profiles, manifest = load_studies()
+    selection, cases, profiles, _ = load_studies()
 except (FileNotFoundError, ValueError) as error:
     st.error(f"The completed report data need regeneration: {error}")
     st.code("python scripts/run_assignment.py")
@@ -96,7 +96,7 @@ elif section == "(a) Discretization":
 elif section == "(b) Parameter studies":
     report_ui.parameters_page(cases, profiles)
 elif section == "(c) Discussion and conclusions":
-    report_ui.conclusions_page(selection, cases, manifest)
+    report_ui.conclusions_page(cases)
 else:
     st.header("Interactive steady-state simulation")
     st.write("Explore how geometry and prescribed temperature change the flux on B. The completed report results in (a) and (b) keep their documented fixed parameters.")

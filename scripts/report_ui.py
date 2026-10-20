@@ -5,7 +5,7 @@ import streamlit as st
 
 from app_charts import angular_chart, trend_chart
 from assignment_content import REQUIREMENTS
-from study_data import (DATA, MESH, ROOT, SCRIPTS, STUDIES, discussion, download_cases, download_comparisons,
+from study_data import (DATA, MESH, ROOT, STUDIES, discussion, download_cases, download_comparisons,
                         download_profiles, study_rows)
 
 
@@ -221,7 +221,7 @@ def parameters_page(cases, profiles):
     st.download_button("Download angular profiles (CSV)", download_profiles(frame, study).to_csv(index=False), f"{study}_profiles.csv", "text/csv")
 
 
-def conclusions_page(selection, cases, manifest):
+def conclusions_page(cases):
     st.header("(c) Discussion and conclusions")
     requirement("c")
     st.write("Part (c) brings together the interpretation of the calculations. Its descriptions, diagrams and commentary also accompany the analyses in (a) and (b). The conclusions below refer to the stated parameter ranges and fixed emissivities.")
@@ -240,8 +240,3 @@ def conclusions_page(selection, cases, manifest):
     st.download_button("Download complete submission (ZIP)", build_package(), "eccentric-cylinder-assignment.zip", "application/zip", type="primary")
     st.download_button("Download written report (PDF)", (ROOT / "docs" / "REPORT.pdf").read_bytes(), "eccentric-cylinder-report.pdf", "application/pdf")
     st.download_button("Download all parameter results (CSV)", download_cases(cases).to_csv(index=False), "parameter_studies.csv", "text/csv")
-    st.code("python -m pip install -r requirements-dev.txt\npython -m pytest -q\npython scripts/run_assignment.py\npython -m streamlit run scripts/streamlit_app.py", language="powershell")
-    with st.expander("Numerical source and provenance"):
-        st.code((SCRIPTS / "radiation.py").read_text(encoding="utf-8"), language="python")
-        st.caption("View factors retain circular arcs and visibility. The solver does not normalize or symmetrize the computed factor matrix to hide numerical residuals.")
-        st.json(manifest)
