@@ -97,14 +97,19 @@ def discretization_page(selection, cases):
             profiles.append(profile)
         st.altair_chart(angular_chart(pd.concat(profiles), group="mesh"), width="stretch")
         st.caption("The legend lists segments on A / segments on B. All four profiles are shown with different colors and line styles; close agreement can make them nearly overlap.")
-    table = comparisons[comparisons.study.eq(group)].rename(columns={"profile_change_percent": "Profile change (%)", "max_deviation_change_pp": "D_max change (pp)", "peak_to_peak_change_pp": "D_pp change (pp)", "passes": "Meets criteria"})
+    table = comparisons[comparisons.study.eq(group)].rename(columns={"profile_change_percent": "Profile change (%)", "max_deviation_change_pp": "D_max change (pp)", "peak_to_peak_change_pp": "D_pp change (pp)", "passes": "Changes small enough?"})
     case_labels = {row.case: (f"{row.tolerance:.0e}" if group == "integration" else f"{row.n_outer}/{row.n_inner}") for row in all_cases.itertuples()}
     table["coarse"] = table.coarse.map(case_labels)
     table["fine"] = table.fine.map(case_labels)
-    comparison_labels = {"coarse": "Looser tolerance" if group == "integration" else "Coarser mesh A/B",
-                         "fine": "Tighter tolerance" if group == "integration" else "Finer mesh A/B"}
-    st.write("Each row compares two calculation resolutions to check whether B's flux distribution has stabilized. Smaller changes mean closer agreement between the calculations.")
-    st.dataframe(table[["coarse", "fine", "Profile change (%)", "D_max change (pp)", "D_pp change (pp)", "Meets criteria"]].rename(columns=comparison_labels), hide_index=True, width="stretch")
+    comparison_labels = {"coarse": "Looser tolerance" if group == "integration" else "Fewer segments (A/B)",
+                         "fine": "Tighter tolerance" if group == "integration" else "More segments (A/B)"}
+    if group == "integration":
+        st.subheader("Does a smaller integration tolerance change the results?")
+        st.write("We compare two calculations with different integration tolerances. Small differences suggest that requesting tighter integration has little effect on the results.")
+    else:
+        st.subheader("Does adding more segments change the results?")
+        st.write("We compare two calculations with different segment counts. Small differences suggest that adding more segments has little effect on the results.")
+    st.dataframe(table[["coarse", "fine", "Profile change (%)", "D_max change (pp)", "D_pp change (pp)", "Changes small enough?"]].rename(columns=comparison_labels), hide_index=True, width="stretch")
     st.caption(r"$D_{\max}$ change and $D_{pp}$ change are absolute differences between the two calculations, in percentage points (pp). A checked box means the profile change is below 0.5% and both measure changes are below 0.1 pp.")
     st.write({"outer": "Outer refinement progressively stabilizes the local distribution: changing A from 96 to 192 segments changes D_max by about 0.0032 percentage points. Selection also considers the larger offsets in part (b).",
               "inner": "The 16-to-32 inner refinement changes D_max and D_pp by more than 0.1 percentage points. Finer inner meshes stabilize them. The mean heat flux changes much less, so checking total heat alone would miss insufficient resolution of local nonuniformity.",
