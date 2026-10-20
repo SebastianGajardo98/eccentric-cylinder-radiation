@@ -61,8 +61,8 @@ def study_figures(cases, profiles):
         fig.suptitle(title+" — selected mesh 96/128, fixed emissivities 0.6/0.8", fontsize=13)
         axes[0, 0].plot(rows.parameter_value, rows.mean_inner_flux_w_m2, "o-", color="#b45309")
         axes[0, 0].set(xlabel=xlabel, ylabel="Mean net flux (W/m²)", ylim=(0, 1.1*rows.mean_inner_flux_w_m2.max()))
-        axes[0, 1].plot(rows.parameter_value, rows.max_deviation_percent, "o-", label="Maximum absolute deviation")
-        axes[0, 1].plot(rows.parameter_value, rows.peak_to_peak_percent, "s-", label="Peak-to-peak range")
+        axes[0, 1].plot(rows.parameter_value, rows.max_deviation_percent, "o-", label=r"$D_{\max}$")
+        axes[0, 1].plot(rows.parameter_value, rows.peak_to_peak_percent, "s-", label=r"$D_{pp}$")
         axes[0, 1].set(xlabel=xlabel, ylabel="Relative nonuniformity (%)", ylim=(0, max(1, 1.12*rows.peak_to_peak_percent.max())))
         axes[0, 1].legend(fontsize=8)
         for index, row in enumerate(rows.itertuples()):
@@ -132,7 +132,7 @@ def write_reports(selection, cases, profiles, manifest):
         report_section(parameters, "## Part (b): influence of physical parameters", "b"), "",
         "## Part (c): discussion and conclusions", "",
         "**Assignment requirement (c)**", "", "> "+REQUIREMENTS["c"], "",
-        f"1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = {baseline.mean_inner_flux_w_m2:.6f} W/m², maximum relative deviation = {baseline.max_deviation_percent:.6f}% and peak-to-peak range = {baseline.peak_to_peak_percent:.6f}%.",
+        f"1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = {baseline.mean_inner_flux_w_m2:.6f} W/m², D_max = {baseline.max_deviation_percent:.6f}% and D_pp = {baseline.peak_to_peak_percent:.6f}%.",
         "2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.",
         "3. At the stated fixed emissivities, increasing center distance or increasing radius at fixed center distance increases relative nonuniformity over the studied ranges. The two variations change enclosure geometry in different ways.",
         "4. Increasing prescribed inner temperature increases absolute flux, while normalized nonuniformity remains unchanged under the temperature-independent-emissivity model.",

@@ -15,6 +15,8 @@ def number_columns():
             "mean_inner_flux_w_m2": st.column_config.NumberColumn("Mean q on B (W/m²)", format="%.3f"),
             "max_deviation_percent": st.column_config.NumberColumn("D_max (%)", format="%.5f"),
             "peak_to_peak_percent": st.column_config.NumberColumn("D_pp (%)", format="%.5f"),
+            "max_deviation_change_pp": st.column_config.NumberColumn("D_max change (pp)", format="%.4f"),
+            "peak_to_peak_change_pp": st.column_config.NumberColumn("D_pp change (pp)", format="%.4f"),
             "heat_inner_w_m": st.column_config.NumberColumn("Q′_B (W/m)", format="%.3f"),
             "n_outer": st.column_config.NumberColumn("N_A", format="%d"),
             "n_inner": st.column_config.NumberColumn("N_B", format="%d"),
@@ -86,7 +88,7 @@ def discretization_page(selection, cases):
     st.dataframe(rows[cols], column_config=number_columns(), hide_index=True, width="stretch")
     st.caption(r"From equation (13): $D_{\max}$ is the largest percentage departure from B's mean flux; $D_{pp}$ is the maximum-to-minimum flux difference expressed as a percentage of that mean.")
     if group != "integration":
-        st.altair_chart(trend_chart(rows, x, label, "max_deviation_percent", "Maximum relative deviation (%)"), width="stretch")
+        st.altair_chart(trend_chart(rows, x, label, "max_deviation_percent", "D_max (%)"), width="stretch")
         profiles = []
         for row in rows.itertuples():
             profile = pd.read_csv(MESH / f"independent_{row.case}_profile.csv")
@@ -95,29 +97,31 @@ def discretization_page(selection, cases):
             profiles.append(profile)
         st.altair_chart(angular_chart(pd.concat(profiles), group="mesh"), width="stretch")
         st.caption("The legend lists segments on A / segments on B. All four profiles are shown with different colors and line styles; close agreement can make them nearly overlap.")
-    table = comparisons[comparisons.study.eq(group)].rename(columns={"profile_change_percent": "Profile change (%)", "max_deviation_change_pp": "Max-deviation change (pp)", "peak_to_peak_change_pp": "Peak-to-peak change (pp)", "passes": "Meets criteria"})
+    table = comparisons[comparisons.study.eq(group)].rename(columns={"profile_change_percent": "Profile change (%)", "max_deviation_change_pp": "D_max change (pp)", "peak_to_peak_change_pp": "D_pp change (pp)", "passes": "Meets criteria"})
     case_labels = {row.case: (f"{row.tolerance:.0e}" if group == "integration" else f"{row.n_outer}/{row.n_inner}") for row in all_cases.itertuples()}
     table["coarse"] = table.coarse.map(case_labels)
     table["fine"] = table.fine.map(case_labels)
     comparison_labels = {"coarse": "Looser tolerance" if group == "integration" else "Coarser mesh A/B",
                          "fine": "Tighter tolerance" if group == "integration" else "Finer mesh A/B"}
-    st.dataframe(table[["coarse", "fine", "Profile change (%)", "Max-deviation change (pp)", "Peak-to-peak change (pp)", "Meets criteria"]].rename(columns=comparison_labels), hide_index=True, width="stretch")
-    st.write({"outer": "Outer refinement progressively stabilizes the local distribution: changing A from 96 to 192 segments changes maximum relative deviation by about 0.0032 percentage points. Selection also considers the larger offsets in part (b).",
-              "inner": "The 16-to-32 inner refinement changes the deviation metrics by more than 0.1 percentage points. Finer inner meshes stabilize them. The mean heat flux changes much less, so checking total heat alone would miss insufficient resolution of local nonuniformity.",
-              "integration": "Tightening integration changes the nonuniformity metrics by less than 2e-9 percentage points between successive tolerances here. Integration has stabilized; that does not replace refinement of the surface arcs."}[group])
+    st.write("Each row compares two calculation resolutions to check whether B's flux distribution has stabilized. Smaller changes mean closer agreement between the calculations.")
+    st.dataframe(table[["coarse", "fine", "Profile change (%)", "D_max change (pp)", "D_pp change (pp)", "Meets criteria"]].rename(columns=comparison_labels), hide_index=True, width="stretch")
+    st.caption(r"$D_{\max}$ change and $D_{pp}$ change are absolute differences between the two calculations, in percentage points (pp). A checked box means the profile change is below 0.5% and both measure changes are below 0.1 pp.")
+    st.write({"outer": "Outer refinement progressively stabilizes the local distribution: changing A from 96 to 192 segments changes D_max by about 0.0032 percentage points. Selection also considers the larger offsets in part (b).",
+              "inner": "The 16-to-32 inner refinement changes D_max and D_pp by more than 0.1 percentage points. Finer inner meshes stabilize them. The mean heat flux changes much less, so checking total heat alone would miss insufficient resolution of local nonuniformity.",
+              "integration": "Tightening integration changes D_max and D_pp by less than 2e-9 percentage points between successive tolerances here. Integration has stabilized; that does not replace refinement of the surface arcs."}[group])
     st.subheader("Selection criteria and qualification")
-    st.markdown("- Maximum difference between interpolated angular profiles: **below 0.5%** of the refined mean flux.\n- Change in maximum relative deviation: **below 0.1 percentage points**.\n- Change in peak-to-peak relative range: **below 0.1 percentage points**.")
+    st.markdown(r"- Maximum difference between interpolated angular profiles: **below 0.5%** of the refined mean flux." + "\n" + r"- Change in $D_{\max}$: **below 0.1 percentage points**." + "\n" + r"- Change in $D_{pp}$: **below 0.1 percentage points**.")
     st.caption("Profiles are compared by periodic interpolation of segment averages on a common 4096-angle grid. These are finite-refinement differences, not rigorous absolute error bounds.")
     qualification = pd.read_csv(MESH / "qualification_96_128_comparisons.csv")
     with st.container(horizontal=True):
         st.metric("Geometry points checked", str(len(qualification)), border=True)
         st.metric("Largest profile change", f"{qualification.profile_change_percent.max():.4f}%", border=True)
-        st.metric("Largest metric change", f"{max(qualification.max_deviation_change_pp.max(), qualification.peak_to_peak_change_pp.max()):.4f} pp", border=True)
-    st.write("At each geometry used in part (b), compare 96/128 against 192/256. All 12 points pass. At the largest offset, also compare against 384/256: the coarser 96/64 mesh misses the peak-to-peak criterion (0.102032 pp), while 96/128 passes (0.059172 pp).")
+        st.metric("Largest D_max or D_pp change", f"{max(qualification.max_deviation_change_pp.max(), qualification.peak_to_peak_change_pp.max()):.4f} pp", border=True)
+    st.write("At each geometry used in part (b), compare 96/128 against 192/256. All 12 points pass. At the largest offset, also compare against 384/256: the coarser 96/64 mesh misses the D_pp-change criterion (0.102032 pp), while 96/128 passes (0.059172 pp).")
     with st.expander("Qualification table and additional high-offset check"):
-        st.dataframe(qualification[["point", "r", "d", "profile_change_percent", "max_deviation_change_pp", "peak_to_peak_change_pp", "passes"]], hide_index=True, width="stretch")
+        st.dataframe(qualification[["point", "r", "d", "profile_change_percent", "max_deviation_change_pp", "peak_to_peak_change_pp", "passes"]], column_config=number_columns(), hide_index=True, width="stretch")
         extra = pd.read_csv(MESH / "worst_case_comparisons.csv")
-        st.dataframe(extra[extra.fine.eq("further_refined")], hide_index=True, width="stretch")
+        st.dataframe(extra[extra.fine.eq("further_refined")], column_config=number_columns(), hide_index=True, width="stretch")
     st.image(str(MESH / "discretization_selection.png"), width="stretch")
     st.subheader("Discretization selected for part (b)")
     st.success(f"Based on the refinement comparisons above: N_A = {selection['n_outer']}, N_B = {selection['n_inner']}, integration tolerance = 1e-8.")
@@ -143,7 +147,7 @@ def parameters_page(cases, profiles):
              "radius": "Change r = 0.2 to 0.6 m; fix d = 0.3 m and T_B = 200 °C. The surfaces remain separated.",
              "temperature": "Change T_B = 60 to 400 °C; fix r = 0.4 m and d = 0.3 m."}[study])
     st.subheader("Effect on nonuniformity")
-    st.altair_chart(trend_chart(rows, x, xlabel, "max_deviation_percent", "Maximum relative deviation (%)"), width="stretch")
+    st.altair_chart(trend_chart(rows, x, xlabel, "max_deviation_percent", "D_max (%)"), width="stretch")
     st.write(discussion(cases, study))
     st.subheader("Angular distribution on B")
     quantity = st.segmented_control("Profile quantity", ["Deviation from mean (%)", "Net flux (W/m²)"], default="Deviation from mean (%)", required=True, key=f"{study}_profile_quantity")

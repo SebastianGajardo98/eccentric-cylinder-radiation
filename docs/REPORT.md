@@ -274,7 +274,7 @@ Final one-parameter sweeps: e = 0, 0.15, 0.30, 0.45, 0.60, 0.75, 0.90 at r = 0.4
 
 The outer surface was refined through 24, 48, 96 and 192 segments with the inner surface held at 128. The inner surface was refined through 16, 32, 64 and 128 segments with the outer surface held at 192. This separates their effects; both surfaces were not simply increased together.
 
-| Refinement | Maximum-deviation change (percentage points) | Peak-to-peak change (percentage points) |
+| Refinement | D_max change (percentage points) | D_pp change (percentage points) |
 | --- | ---: | ---: |
 | outer_24_128 to outer_48_128 | 0.051272 | 0.064188 |
 | outer_48_128 to outer_96_128 | 0.012871 | 0.016035 |
@@ -287,11 +287,11 @@ The inner 16-to-32 refinement fails the 0.1 percentage-point criterion. Finer me
 
 ### Qualification across the study points
 
-Accept changes below 0.5% in the maximum difference of interpolated flux profiles, and below 0.1 percentage points in both maximum relative deviation and peak-to-peak relative range. Normalize profile differences by the refined grid's mean inner flux. Periodic interpolation uses a shared 4096-angle grid and segment averages; it is a comparison method, not an exact pointwise solution.
+Accept changes below 0.5% in the maximum difference of interpolated flux profiles, and below 0.1 percentage points in both D_max and D_pp. Normalize profile differences by the refined grid's mean inner flux. Periodic interpolation uses a shared 4096-angle grid and segment averages; it is a comparison method, not an exact pointwise solution.
 
 Each of the 12 distinct geometry points was compared at 96/128 and 192/256 segments. All pass the three criteria.
 
-| Study point | e | Profile change (%) | Max-deviation change (pp) | Peak-to-peak change (pp) |
+| Study point | e | Profile change (%) | D_max change (pp) | D_pp change (pp) |
 | --- | ---: | ---: | ---: | ---: |
 | baseline | 0.500 | 0.005695 | 0.005491 | 0.006929 |
 | eccentricity_0 | 0.000 | 0.000000 | 0.000000 | 0.000000 |
@@ -308,14 +308,14 @@ Each of the 12 distinct geometry points was compared at 96/128 and 192/256 segme
 
 ### Why the inner grid was increased from 64 to 128
 
-At e = 0.9, the coarser 96/64 mesh passes comparison with 192/128. Its peak-to-peak range nevertheless differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.
+At e = 0.9, the coarser 96/64 mesh passes comparison with 192/128. Its D_pp nevertheless differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.
 
 ### Integration and temperature checks
 
 At 96/64 baseline resolution, tightening source integration from 1e-6 through 1e-9 changes the nonuniformity metrics by less than 2e-9 percentage points between successive tolerances. At the selected 96/128 resolution, a 1e-8 versus 1e-9 check was also run at the baseline and at e = 0.9.
 
-- baseline: profile change 1.658e-11%; peak-to-peak change 1.274e-11 percentage points.
-- high_eccentricity: profile change 2.629e-10%; peak-to-peak change 2.937e-11 percentage points.
+- baseline: profile change 1.658e-11%; D_pp change 1.274e-11 percentage points.
+- high_eccentricity: profile change 2.629e-10%; D_pp change 2.937e-11 percentage points.
 
 Temperature checks at 60, 200 and 400 C, for both baseline and e = 0.9 geometry, leave the normalized nonuniformity unchanged to approximately 2e-12 percentage points. This agrees with the linear fixed-emissivity model: temperature scales absolute flux through the difference in fourth powers. It does not justify temperature-independent results if material emissivity varies with temperature.
 
@@ -328,8 +328,8 @@ Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with sour
 ### Selected-mesh baseline result
 
 - Mean inner flux: 1549.473679 W/m^2.
-- Maximum relative deviation: 4.734188%.
-- Peak-to-peak relative range: 8.206598%.
+- D_max: 4.734188%.
+- D_pp: 8.206598%.
 - Heat from B per unit length: 3894.252103 W/m.
 
 ### Scope and reproducibility
@@ -366,9 +366,9 @@ All cases use N_A = 96, N_B = 128, source integration tolerance 1e-8, R = 1 m, T
 
 ### Center distance d
 
-At fixed r = 0.4 m and T_B = 200 °C, increasing d from 0.00 to 0.54 m increases maximum relative deviation from approximately zero to 13.933%. The peak-to-peak range reaches 21.358%, while mean flux changes from 1558.02 to 1521.27 W/m². The concentric point is a numerical reference; the other points are eccentric cases. For these gray-surface parameters, the narrow-gap side loses less net heat per area than the wide-gap side. A has uniform temperature but nonuniform radiosity because it also reflects the nonuniform irradiation from B. In these cases the near side of B receives more returning irradiation, reducing its net outward flux through q = epsilon_B (sigma T_B^4 - G_B). This is a coupled enclosure result, rather than a universal rule based on distance alone.
+At fixed r = 0.4 m and T_B = 200 °C, increasing d from 0.00 to 0.54 m increases D_max from approximately zero to 13.933%. D_pp reaches 21.358%, while mean flux changes from 1558.02 to 1521.27 W/m². The concentric point is a numerical reference; the other points are eccentric cases. For these gray-surface parameters, the narrow-gap side loses less net heat per area than the wide-gap side. A has uniform temperature but nonuniform radiosity because it also reflects the nonuniform irradiation from B. In these cases the near side of B receives more returning irradiation, reducing its net outward flux through q = epsilon_B (sigma T_B^4 - G_B). This is a coupled enclosure result, rather than a universal rule based on distance alone.
 
-| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | Max deviation (%) | Peak-to-peak (%) | Q'_B (W/m) |
+| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0.4 | 0 | 200 | 1558.016783 | 0.000000 | 0.000000 | 3915.723263 |
 | 0.4 | 0.09 | 200 | 1557.320269 | 1.138305 | 2.179610 | 3913.972733 |
@@ -382,9 +382,9 @@ At fixed r = 0.4 m and T_B = 200 °C, increasing d from 0.00 to 0.54 m increases
 
 ### Inner radius r
 
-At fixed d = 0.3 m and T_B = 200 °C, increasing r from 0.2 to 0.6 m increases maximum relative deviation from 1.948% to 8.181%. Mean flux decreases from 1703.45 to 1420.67 W/m². The total heat per unit length changes from 2140.62 to 5355.81 W/m because the circumference also changes. Holding d fixed makes normalized eccentricity increase from 0.375 to 0.750; the minimum gap decreases from 0.50 to 0.10 m. These conclusions describe radius variation at fixed center distance, not at fixed normalized eccentricity.
+At fixed d = 0.3 m and T_B = 200 °C, increasing r from 0.2 to 0.6 m increases D_max from 1.948% to 8.181%. Mean flux decreases from 1703.45 to 1420.67 W/m². The total heat per unit length changes from 2140.62 to 5355.81 W/m because the circumference also changes. Holding d fixed makes normalized eccentricity increase from 0.375 to 0.750; the minimum gap decreases from 0.50 to 0.10 m. These conclusions describe radius variation at fixed center distance, not at fixed normalized eccentricity.
 
-| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | Max deviation (%) | Peak-to-peak (%) | Q'_B (W/m) |
+| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0.2 | 0.3 | 200 | 1703.454772 | 1.948488 | 3.490679 | 2140.624399 |
 | 0.3 | 0.3 | 200 | 1622.909791 | 3.233448 | 5.696237 | 3059.112885 |
@@ -396,9 +396,9 @@ At fixed d = 0.3 m and T_B = 200 °C, increasing r from 0.2 to 0.6 m increases m
 
 ### Inner temperature
 
-At fixed r = 0.4 m and d = 0.3 m, raising T_B from 60 to 400 °C increases mean flux from 144.00 to 7320.48 W/m² (a factor of 50.84). Maximum relative deviation remains 4.734188%: its observed range is 1.18e-12 percentage points. With fixed geometry and temperature-independent emissivities, the linear radiosity equations scale absolute flux with the difference of fourth powers of temperature. The normalized angular shape therefore remains unchanged. This does not apply automatically to materials whose emissivity changes with temperature.
+At fixed r = 0.4 m and d = 0.3 m, raising T_B from 60 to 400 °C increases mean flux from 144.00 to 7320.48 W/m² (a factor of 50.84). D_max remains 4.734188%: its observed range is 1.18e-12 percentage points. With fixed geometry and temperature-independent emissivities, the linear radiosity equations scale absolute flux with the difference of fourth powers of temperature. The normalized angular shape therefore remains unchanged. This does not apply automatically to materials whose emissivity changes with temperature.
 
-| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | Max deviation (%) | Peak-to-peak (%) | Q'_B (W/m) |
+| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0.4 | 0.3 | 60 | 144.004152 | 4.734188 | 8.206598 | 361.921909 |
 | 0.4 | 0.3 | 100 | 406.862619 | 4.734188 | 8.206598 | 1022.557293 |
@@ -422,7 +422,7 @@ Reproduce with `python run_assignment.py`. Source fingerprints and raw tables ar
 
 > Supplement all analyses with appropriate descriptions, diagrams, and commentary, and compare the results with analytical solutions, if find appropriate.
 
-1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = 1549.473679 W/m², maximum relative deviation = 4.734188% and peak-to-peak range = 8.206598%.
+1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = 1549.473679 W/m², D_max = 4.734188% and D_pp = 8.206598%.
 2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.
 3. At the stated fixed emissivities, increasing center distance or increasing radius at fixed center distance increases relative nonuniformity over the studied ranges. The two variations change enclosure geometry in different ways.
 4. Increasing prescribed inner temperature increases absolute flux, while normalized nonuniformity remains unchanged under the temperature-independent-emissivity model.

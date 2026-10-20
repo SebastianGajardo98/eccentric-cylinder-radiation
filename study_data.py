@@ -98,7 +98,7 @@ def study_rows(cases, study):
 def summary_markdown(rows):
     columns = ["r", "d", "temperature_inner_c", "mean_inner_flux_w_m2",
                "max_deviation_percent", "peak_to_peak_percent", "heat_inner_w_m"]
-    lines = ["| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | Max deviation (%) | Peak-to-peak (%) | Q'_B (W/m) |",
+    lines = ["| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |",
              "| ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for _, row in rows.iterrows():
         lines.append("| " + " | ".join(f"{row[c]:.6f}" if c not in columns[:3] else f"{row[c]:g}" for c in columns) + " |")
@@ -110,8 +110,8 @@ def discussion(cases, study):
     a, b = rows.iloc[0], rows.iloc[-1]
     if study == "offset":
         return (f"At fixed r = 0.4 m and T_B = 200 °C, increasing d from {a.d:.2f} to {b.d:.2f} m "
-                f"increases maximum relative deviation from approximately zero to {b.max_deviation_percent:.3f}%. "
-                f"The peak-to-peak range reaches {b.peak_to_peak_percent:.3f}%, while mean flux changes "
+                f"increases D_max from approximately zero to {b.max_deviation_percent:.3f}%. "
+                f"D_pp reaches {b.peak_to_peak_percent:.3f}%, while mean flux changes "
                 f"from {a.mean_inner_flux_w_m2:.2f} to {b.mean_inner_flux_w_m2:.2f} W/m². "
                 "The concentric point is a numerical reference; the other points are eccentric cases. "
                 "For these gray-surface parameters, the narrow-gap side loses less net heat per area than the wide-gap side. "
@@ -120,7 +120,7 @@ def discussion(cases, study):
                 "This is a coupled enclosure result, rather than a universal rule based on distance alone.")
     if study == "radius":
         return (f"At fixed d = 0.3 m and T_B = 200 °C, increasing r from {a.r:.1f} to {b.r:.1f} m "
-                f"increases maximum relative deviation from {a.max_deviation_percent:.3f}% to {b.max_deviation_percent:.3f}%. "
+                f"increases D_max from {a.max_deviation_percent:.3f}% to {b.max_deviation_percent:.3f}%. "
                 f"Mean flux decreases from {a.mean_inner_flux_w_m2:.2f} to {b.mean_inner_flux_w_m2:.2f} W/m². "
                 f"The total heat per unit length changes from {a.heat_inner_w_m:.2f} to {b.heat_inner_w_m:.2f} W/m because the circumference also changes. "
                 "Holding d fixed makes normalized eccentricity increase from 0.375 to 0.750; the minimum gap decreases from 0.50 to 0.10 m. "
@@ -128,7 +128,7 @@ def discussion(cases, study):
     return (f"At fixed r = 0.4 m and d = 0.3 m, raising T_B from {a.temperature_inner_c:g} to {b.temperature_inner_c:g} °C "
             f"increases mean flux from {a.mean_inner_flux_w_m2:.2f} to {b.mean_inner_flux_w_m2:.2f} W/m² "
             f"(a factor of {b.mean_inner_flux_w_m2/a.mean_inner_flux_w_m2:.2f}). "
-            f"Maximum relative deviation remains {a.max_deviation_percent:.6f}%: its observed range is "
+            f"D_max remains {a.max_deviation_percent:.6f}%: its observed range is "
             f"{rows.max_deviation_percent.max()-rows.max_deviation_percent.min():.2e} percentage points. "
             "With fixed geometry and temperature-independent emissivities, the linear radiosity equations scale absolute flux with the difference of fourth powers of temperature. "
             "The normalized angular shape therefore remains unchanged. This does not apply automatically to materials whose emissivity changes with temperature.")

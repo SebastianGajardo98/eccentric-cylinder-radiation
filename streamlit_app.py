@@ -133,8 +133,8 @@ else:
     metrics = result.metrics
     with st.container(horizontal=True):
         st.metric("Mean q on B", f"{metrics['mean_inner_flux_w_m2']:.2f} W/m²", border=True)
-        st.metric("Maximum relative deviation", f"{metrics['max_deviation_percent']:.3f}%", border=True)
-        st.metric("Peak-to-peak range", f"{metrics['peak_to_peak_percent']:.3f}%", border=True)
+        st.metric("D_max", f"{metrics['max_deviation_percent']:.3f}%", border=True)
+        st.metric("D_pp", f"{metrics['peak_to_peak_percent']:.3f}%", border=True)
     figure = geometry_chart(result, representation="net", detail=False, arrow_count=8, uniform_reference=False, length_contrast=1)
     st.pyplot(figure, width="stretch")
     plt.close(figure)
