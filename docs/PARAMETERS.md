@@ -1,14 +1,14 @@
 # Influence of radius, center distance and temperature
 
-All cases use N_A = 96, N_B = 128, source integration tolerance 1e-8, R = 1 m, T_A = 30 C, epsilon_A = 0.6 and epsilon_B = 0.8. Only the named parameter changes within each study. All reported q values are segment averages.
+All cases use $N_A = 96$ and $N_B = 128$ segments, integration tolerance $10^{-8}$, $R = 1$ m, $T_A = 30$ °C, $\epsilon_A = 0.6$ and $\epsilon_B = 0.8$. Only the named parameter changes within each study. All reported values of $q$ are segment averages.
 
 **Code:** [`run_parameter_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_parameter_studies.py) runs the three studies with the selected settings using [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py). [`plot_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_studies.py) generates these figures and the written report; [`study_data.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/study_data.py) checks the recorded data and prepares the commentary.
 
 ## Center distance d
 
-At fixed r = 0.4 m and T_B = 200 °C, increasing d from 0.00 to 0.54 m increases D_max from approximately zero to 13.933%. D_pp reaches 21.358%, while mean flux changes from 1558.02 to 1521.27 W/m². The concentric point is a numerical reference; the other points are eccentric cases. For these gray-surface parameters, the narrow-gap side loses less net heat per area than the wide-gap side. A has uniform temperature but nonuniform radiosity because it also reflects the nonuniform irradiation from B. In these cases the near side of B receives more returning irradiation, reducing its net outward flux through q = epsilon_B (sigma T_B^4 - G_B). This is a coupled enclosure result, rather than a universal rule based on distance alone.
+At fixed $r$ = 0.4 m and $T_B$ = 200 °C, increasing $d$ from 0.00 to 0.54 m increases $D_{\max}$ from zero to 13.933% and $D_{pp}$ to 21.358%, while the mean flux $\bar q_B$ changes only from 1558.02 to 1521.27 W/m². The concentric case is the uniform-flux reference; all other points are eccentric. For these gray surfaces, the narrow-gap side of B loses less heat per unit area than the wide-gap side. Although A is isothermal, its radiosity is not uniform, because A also reflects the nonuniform radiation it receives from B. The narrow-gap side of B therefore receives more irradiation $G_i$, and by equation (7), $q_i=\epsilon_B(\sigma T_B^4-G_i)$, a larger irradiation gives a smaller net outward flux. The pattern results from the coupled exchange in the whole enclosure, not from the local gap width alone.
 
-| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |
+| $r$ (m) | $d$ (m) | $T_B$ (°C) | $\bar q_B$ (W/m²) | $D_{\max}$ (%) | $D_{pp}$ (%) | $Q'_B$ (W/m) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0.4 | 0 | 200 | 1558.016783 | 0.000000 | 0.000000 | 3915.723263 |
 | 0.4 | 0.09 | 200 | 1557.320269 | 1.138305 | 2.179610 | 3913.972733 |
@@ -22,9 +22,9 @@ At fixed r = 0.4 m and T_B = 200 °C, increasing d from 0.00 to 0.54 m increases
 
 ## Inner radius r
 
-At fixed d = 0.3 m and T_B = 200 °C, increasing r from 0.2 to 0.6 m increases D_max from 1.948% to 8.181%. Mean flux decreases from 1703.45 to 1420.67 W/m². The total heat per unit length changes from 2140.62 to 5355.81 W/m because the circumference also changes. Holding d fixed makes normalized eccentricity increase from 0.375 to 0.750; the minimum gap decreases from 0.50 to 0.10 m. These conclusions describe radius variation at fixed center distance, not at fixed normalized eccentricity.
+At fixed $d$ = 0.3 m and $T_B$ = 200 °C, increasing $r$ from 0.2 to 0.6 m increases $D_{\max}$ from 1.948% to 8.181%. The mean flux $\bar q_B$ decreases from 1703.45 to 1420.67 W/m², while the heat rate per unit length $Q'_B$ rises from 2140.62 to 5355.81 W/m because the circumference of B grows. With $d$ fixed, the normalized eccentricity $e=d/(R-r)$ rises from 0.375 to 0.750 and the minimum gap narrows from 0.50 to 0.10 m. These results therefore describe radius changes at fixed center distance, not at fixed $e$.
 
-| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |
+| $r$ (m) | $d$ (m) | $T_B$ (°C) | $\bar q_B$ (W/m²) | $D_{\max}$ (%) | $D_{pp}$ (%) | $Q'_B$ (W/m) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0.2 | 0.3 | 200 | 1703.454772 | 1.948488 | 3.490679 | 2140.624399 |
 | 0.3 | 0.3 | 200 | 1622.909791 | 3.233448 | 5.696237 | 3059.112885 |
@@ -36,9 +36,9 @@ At fixed d = 0.3 m and T_B = 200 °C, increasing r from 0.2 to 0.6 m increases D
 
 ## Inner temperature
 
-At fixed r = 0.4 m and d = 0.3 m, raising T_B from 60 to 400 °C increases mean flux from 144.00 to 7320.48 W/m² (a factor of 50.84). D_max remains 4.734188%: its observed range is 1.18e-12 percentage points. With fixed geometry and temperature-independent emissivities, the linear radiosity equations scale absolute flux with the difference of fourth powers of temperature. The normalized angular shape therefore remains unchanged. This does not apply automatically to materials whose emissivity changes with temperature.
+At fixed $r$ = 0.4 m and $d$ = 0.3 m, raising $T_B$ from 60 to 400 °C increases the mean flux $\bar q_B$ from 144.00 to 7320.48 W/m², a factor of 50.84. $D_{\max}$ stays at 4.734188%; across the six temperatures it varies by only $1.2\times10^{-12}$ percentage points. With fixed geometry and temperature-independent emissivities, the radiosity equations are linear and the flux scales with $\sigma(T_B^4-T_A^4)$, equation (14). The normalized angular profile is therefore unchanged. This would not hold for materials whose emissivity depends on temperature.
 
-| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |
+| $r$ (m) | $d$ (m) | $T_B$ (°C) | $\bar q_B$ (W/m²) | $D_{\max}$ (%) | $D_{pp}$ (%) | $Q'_B$ (W/m) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0.4 | 0.3 | 60 | 144.004152 | 4.734188 | 8.206598 | 361.921909 |
 | 0.4 | 0.3 | 100 | 406.862619 | 4.734188 | 8.206598 | 1022.557293 |
@@ -51,6 +51,6 @@ At fixed r = 0.4 m and d = 0.3 m, raising T_B from 60 to 400 °C increases mean 
 
 ## Numerical consistency
 
-Across the 19 baseline/study cases, maximum relative energy imbalance is 1.690e-12, maximum view-factor closure residual is 5.773e-15, and maximum scaled reciprocity residual is 5.605e-08. These are consistency checks; mesh selection also uses finite-refinement comparisons.
+Across the 19 cases, the largest relative energy imbalance is $1.7\times10^{-12}$, the largest view-factor closure residual is $5.8\times10^{-15}$, and the largest scaled reciprocity residual is $5.6\times10^{-8}$. These are consistency checks; the mesh itself was selected by the refinement comparisons.
 
 Reproduce with `python scripts/run_assignment.py`. Source fingerprints and raw tables are in results/studies/manifest.json, cases.csv and profiles.csv.

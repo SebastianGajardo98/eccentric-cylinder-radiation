@@ -9,7 +9,8 @@ import numpy as np
 import pandas as pd
 
 from assignment_content import REQUIREMENTS, TITLE
-from study_data import DATA, MESH, ROOT, STUDIES, discussion, load_studies, study_rows, summary_markdown
+from study_data import (D_MAX, D_PP, DATA, MESH, ROOT, STUDIES, discussion, load_studies, scientific,
+                        study_rows, summary_markdown)
 
 
 def save_figure(fig, name):
@@ -99,14 +100,14 @@ def study_figures(cases, profiles):
 def write_reports(selection, cases, profiles, manifest):
     baseline = cases[cases.case.eq("baseline")].iloc[0]
     sections = ["# Influence of radius, center distance and temperature", "",
-        "All cases use N_A = 96, N_B = 128, source integration tolerance 1e-8, R = 1 m, T_A = 30 C, epsilon_A = 0.6 and epsilon_B = 0.8. Only the named parameter changes within each study. All reported q values are segment averages.", ""]
+        r"All cases use $N_A = 96$ and $N_B = 128$ segments, integration tolerance $10^{-8}$, $R = 1$ m, $T_A = 30$ °C, $\epsilon_A = 0.6$ and $\epsilon_B = 0.8$. Only the named parameter changes within each study. All reported values of $q$ are segment averages.", ""]
     sections += ["**Code:** [`run_parameter_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_parameter_studies.py) runs the three studies with the selected settings using [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py). [`plot_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_studies.py) generates these figures and the written report; [`study_data.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/study_data.py) checks the recorded data and prepares the commentary.", ""]
     for study, (title, _, _, _) in STUDIES.items():
         rows = study_rows(cases, study)
         sections += [f"## {title}", "", discussion(cases, study), "", summary_markdown(rows), "",
                      f"![{title} results](../results/studies/{study}_study.png)", ""]
     sections += ["## Numerical consistency", "",
-        f"Across the 19 baseline/study cases, maximum relative energy imbalance is {cases.energy_imbalance_relative.max():.3e}, maximum view-factor closure residual is {cases.closure_max.max():.3e}, and maximum scaled reciprocity residual is {cases.reciprocity_relative_max.max():.3e}. These are consistency checks; mesh selection also uses finite-refinement comparisons.", "",
+        f"Across the 19 cases, the largest relative energy imbalance is {scientific(cases.energy_imbalance_relative.max())}, the largest view-factor closure residual is {scientific(cases.closure_max.max())}, and the largest scaled reciprocity residual is {scientific(cases.reciprocity_relative_max.max())}. These are consistency checks; the mesh itself was selected by the refinement comparisons.", "",
         "Reproduce with `python scripts/run_assignment.py`. Source fingerprints and raw tables are in results/studies/manifest.json, cases.csv and profiles.csv.", ""]
     parameters = "\n".join(sections)
     (ROOT / "docs" / "PARAMETERS.md").write_text(parameters, encoding="utf-8")
@@ -122,7 +123,7 @@ def write_reports(selection, cases, profiles, manifest):
         "## The following is required", "",
         *[f"**({part})** {text}\n" for part, text in REQUIREMENTS.items()],
         "## Objective and numerical scope", "",
-        "Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses.", "",
+        "Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study $r$, $d$ and $T_B$. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses.", "",
         "![Geometry and surface segments](../results/studies/geometry_and_segments.png)", "",
         "Figure: working geometry. The displayed 12/8 segment boundaries illustrate the idea of equal-arc discretization; suitable calculation counts are assessed in the refinement study below.", "",
         (ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"), "",
@@ -133,7 +134,7 @@ def write_reports(selection, cases, profiles, manifest):
         report_section(parameters, "## Part (b): influence of physical parameters", "b"), "",
         "## Part (c): discussion and conclusions", "",
         "**Assignment requirement (c)**", "", "> "+REQUIREMENTS["c"], "",
-        f"1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = {baseline.mean_inner_flux_w_m2:.6f} W/m², D_max = {baseline.max_deviation_percent:.6f}% and D_pp = {baseline.peak_to_peak_percent:.6f}%.",
+        rf"1. The diffuse-gray radiosity model gives a nonuniform flux on B in the eccentric working case: $\bar q_B$ = {baseline.mean_inner_flux_w_m2:.6f} W/m², {D_MAX} = {baseline.max_deviation_percent:.6f}% and {D_PP} = {baseline.peak_to_peak_percent:.6f}%.",
         "2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.",
         "3. At the stated fixed emissivities, increasing center distance or increasing radius at fixed center distance increases relative nonuniformity over the studied ranges. The two variations change enclosure geometry in different ways.",
         "4. Increasing prescribed inner temperature increases absolute flux, while normalized nonuniformity remains unchanged under the temperature-independent-emissivity model.",

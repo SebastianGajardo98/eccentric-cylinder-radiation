@@ -21,7 +21,7 @@ The task is to analyse the deviation from uniform surface flux density when the 
 
 ## Objective and numerical scope
 
-Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses.
+Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study $r$, $d$ and $T_B$. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses.
 
 ![Geometry and surface segments](../results/studies/geometry_and_segments.png)
 
@@ -271,14 +271,14 @@ Local net flux depends on both emission and irradiation from the whole enclosure
 
 | Parameter | Baseline | Reason |
 | --- | --- | --- |
-| Outer radius R | 1 m | Prescribed by the assignment |
-| Outer temperature T_A | 30 C | Prescribed by the assignment |
-| Inner radius r | 0.4 m | Leaves room to vary radius and offset independently |
-| Offset d | 0.3 m | e = 0.5; minimum gap 0.3 m, maximum gap 0.9 m |
-| Inner temperature T_B | 200 C | A working hot-cylinder case above T_A |
-| Emissivities epsilon_A / epsilon_B | 0.6 / 0.8 | Explicit gray-surface working assumptions, allowing diffuse reflections; no particular material is claimed |
+| Outer radius $R$ | 1 m | Prescribed by the assignment |
+| Outer temperature $T_A$ | 30 °C | Prescribed by the assignment |
+| Inner radius $r$ | 0.4 m | Leaves room to vary radius and center distance independently |
+| Center distance $d$ | 0.3 m | $e = 0.5$; minimum gap 0.3 m, maximum gap 0.9 m |
+| Inner temperature $T_B$ | 200 °C | A working hot-cylinder case above $T_A$ |
+| Emissivities $\epsilon_A$ / $\epsilon_B$ | 0.6 / 0.8 | Gray-surface working values that allow diffuse reflections; no particular material is assumed |
 
-Final one-parameter sweeps: e = 0, 0.15, 0.30, 0.45, 0.60, 0.75, 0.90 at r = 0.4 m; r = 0.2, 0.3, 0.4, 0.5, 0.6 m at fixed d = 0.3 m; T_B = 60 to 400 C at baseline geometry. Fix both emissivities throughout. The minimum gap among these geometry points is 0.06 m. The concentric point is a numerical boundary check and a useful starting point for the eccentricity sweep.
+Final one-parameter sweeps: $e$ = 0, 0.15, 0.30, 0.45, 0.60, 0.75 and 0.90 at $r$ = 0.4 m; $r$ = 0.2, 0.3, 0.4, 0.5 and 0.6 m at $d$ = 0.3 m; $T_B$ = 60 to 400 °C at the working geometry. Both emissivities stay fixed throughout. The smallest gap among these geometry points is 0.06 m. The concentric point is the uniform-flux reference and the starting point of the eccentricity sweep.
 
 ### How results from two calculations are compared
 
@@ -317,73 +317,73 @@ These changes are measured in **percentage points (pp)**. Small changes support 
 
 The outer surface was refined through 24, 48, 96 and 192 segments with the inner surface held at 128. The inner surface was refined through 16, 32, 64 and 128 segments with the outer surface held at 192. This separates their effects; both surfaces were not simply increased together.
 
-| Refinement | D_max change (percentage points) | D_pp change (percentage points) |
+| Refinement (A/B segments) | $D_{\max}$ change (percentage points) | $D_{pp}$ change (percentage points) |
 | --- | ---: | ---: |
-| outer_24_128 to outer_48_128 | 0.051272 | 0.064188 |
-| outer_48_128 to outer_96_128 | 0.012871 | 0.016035 |
-| outer_96_128 to outer_192_128 | 0.003233 | 0.004028 |
-| inner_192_16 to inner_192_32 | 0.140154 | 0.181613 |
-| inner_192_32 to inner_192_64 | 0.035871 | 0.046180 |
-| inner_192_64 to outer_192_128 | 0.009021 | 0.011595 |
+| 24/128 to 48/128 | 0.051272 | 0.064188 |
+| 48/128 to 96/128 | 0.012871 | 0.016035 |
+| 96/128 to 192/128 | 0.003233 | 0.004028 |
+| 192/16 to 192/32 | 0.140154 | 0.181613 |
+| 192/32 to 192/64 | 0.035871 | 0.046180 |
+| 192/64 to 192/128 | 0.009021 | 0.011595 |
 
 The inner 16-to-32 refinement fails the 0.1 percentage-point criterion. Finer meshes stabilize. Although the baseline alone permits smaller grids, the choice must also cover the larger offsets in part (b).
 
 ### Qualification across the study points
 
-Accept changes below 0.5% in the maximum difference of interpolated flux profiles, and below 0.1 percentage points in both D_max and D_pp. Normalize profile differences by the refined grid's mean inner flux. Periodic interpolation uses a shared 4096-angle grid and segment averages; it is a comparison method, not an exact pointwise solution.
+Accept changes below 0.5% in the maximum difference of interpolated flux profiles, and below 0.1 percentage points in both $D_{\max}$ and $D_{pp}$. Normalize profile differences by the refined grid's mean inner flux. Periodic interpolation uses a shared 4096-angle grid and segment averages; it is a comparison method, not an exact pointwise solution.
 
 Each of the 12 distinct geometry points was compared at 96/128 and 192/256 segments. All pass the three criteria.
 
 **Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `qualify`, runs these arrangements and compares both meshes using `compare`.
 
-| Study point | e | Profile change (%) | D_max change (pp) | D_pp change (pp) |
-| --- | ---: | ---: | ---: | ---: |
-| baseline | 0.500 | 0.005695 | 0.005491 | 0.006929 |
-| eccentricity_0 | 0.000 | 0.000000 | 0.000000 | 0.000000 |
-| eccentricity_1 | 0.150 | 0.000800 | 0.000787 | 0.001313 |
-| eccentricity_2 | 0.300 | 0.002126 | 0.002070 | 0.002994 |
-| eccentricity_3 | 0.450 | 0.004494 | 0.004342 | 0.005641 |
-| eccentricity_4 | 0.600 | 0.009133 | 0.008783 | 0.010556 |
-| eccentricity_5 | 0.750 | 0.019427 | 0.018657 | 0.021227 |
-| eccentricity_6 | 0.900 | 0.047166 | 0.045451 | 0.049711 |
-| radius_0 | 0.375 | 0.001987 | 0.001891 | 0.002530 |
-| radius_1 | 0.429 | 0.003578 | 0.003429 | 0.004453 |
-| radius_3 | 0.600 | 0.008398 | 0.008140 | 0.009991 |
-| radius_4 | 0.750 | 0.011441 | 0.011134 | 0.013361 |
+| $r$ (m) | $d$ (m) | $e$ | Profile change (%) | $D_{\max}$ change (pp) | $D_{pp}$ change (pp) |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.40 | 0.30 | 0.500 | 0.005695 | 0.005491 | 0.006929 |
+| 0.40 | 0.00 | 0.000 | 0.000000 | 0.000000 | 0.000000 |
+| 0.40 | 0.09 | 0.150 | 0.000800 | 0.000787 | 0.001313 |
+| 0.40 | 0.18 | 0.300 | 0.002126 | 0.002070 | 0.002994 |
+| 0.40 | 0.27 | 0.450 | 0.004494 | 0.004342 | 0.005641 |
+| 0.40 | 0.36 | 0.600 | 0.009133 | 0.008783 | 0.010556 |
+| 0.40 | 0.45 | 0.750 | 0.019427 | 0.018657 | 0.021227 |
+| 0.40 | 0.54 | 0.900 | 0.047166 | 0.045451 | 0.049711 |
+| 0.20 | 0.30 | 0.375 | 0.001987 | 0.001891 | 0.002530 |
+| 0.30 | 0.30 | 0.429 | 0.003578 | 0.003429 | 0.004453 |
+| 0.50 | 0.30 | 0.600 | 0.008398 | 0.008140 | 0.009991 |
+| 0.60 | 0.30 | 0.750 | 0.011441 | 0.011134 | 0.013361 |
 
 ### Why the inner grid was increased from 64 to 128
 
-At e = 0.9, the coarser 96/64 mesh passes comparison with 192/128. Its D_pp nevertheless differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.
+At $e = 0.9$, the coarser 96/64 mesh passes comparison with 192/128. Its $D_{pp}$ nevertheless differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.
 
 **Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `worst_case`, runs these additional resolutions at the same smallest-gap arrangement.
 
 ### Integration and temperature checks
 
-At 96/64 baseline resolution, tightening source integration from 1e-6 through 1e-9 changes the nonuniformity metrics by less than 2e-9 percentage points between successive tolerances. At the selected 96/128 resolution, a 1e-8 versus 1e-9 check was also run at the baseline and at e = 0.9.
+At 96/64 resolution in the working case, tightening the integration tolerance from $10^{-6}$ to $10^{-9}$ changes the nonuniformity measures by less than $2\times10^{-9}$ percentage points between successive tolerances. At the selected 96/128 resolution, tolerances $10^{-8}$ and $10^{-9}$ were also compared in the working case and at $e = 0.9$.
 
-- baseline: profile change 1.658e-11%; D_pp change 1.274e-11 percentage points.
-- high_eccentricity: profile change 2.629e-10%; D_pp change 2.937e-11 percentage points.
+- Working case: profile change $1.7\times10^{-11}$%; $D_{pp}$ change $1.3\times10^{-11}$ percentage points.
+- Largest center distance ($e = 0.9$): profile change $2.6\times10^{-10}$%; $D_{pp}$ change $2.9\times10^{-11}$ percentage points.
 
-Temperature checks at 60, 200 and 400 C, for both baseline and e = 0.9 geometry, leave the normalized nonuniformity unchanged to approximately 2e-12 percentage points. This agrees with the linear fixed-emissivity model: temperature scales absolute flux through the difference in fourth powers. It does not justify temperature-independent results if material emissivity varies with temperature.
+Temperature checks at 60, 200 and 400 °C, in the working case and at $e = 0.9$, leave the normalized nonuniformity unchanged to within about $2\times10^{-12}$ percentage points. This agrees with the linear fixed-emissivity model, in which temperature scales the absolute flux through $\sigma(T_B^4-T_A^4)$, equation (14). It would not hold if the emissivity varied with temperature.
 
-Across the selected-mesh qualification and reference cases, the maximum relative enclosure energy imbalance is 4.470e-12, maximum row-closure residual is 7.883e-15, and maximum scaled reciprocity residual is 5.773e-08.
+Across the selected-mesh qualification and reference cases, the largest relative energy imbalance is $4.5\times10^{-12}$, the largest row-closure residual is $7.9\times10^{-15}$, and the largest scaled reciprocity residual is $5.8\times10^{-8}$.
 
 ### Decision based on the refinement evidence
 
-Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with source-arc integration tolerance **1e-8**, for the documented final parameter-study points. The interactive simulation uses a coarser 24/32 mesh for speed and is not part of the reported results.
+Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with integration tolerance $10^{-8}$, for the documented final parameter-study points. The interactive simulation uses a coarser 24/32 mesh for speed and is not part of the reported results.
 
 **Code:** [`finalize_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/finalize_discretization.py) checks the recorded evidence and saves the selected settings. [`plot_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_discretization.py) draws the selection-evidence figure.
 
 ### Selected-mesh baseline result
 
-- Mean inner flux: 1549.473679 W/m^2.
-- D_max: 4.734188%.
-- D_pp: 8.206598%.
-- Heat from B per unit length: 3894.252103 W/m.
+- Mean flux on B, $\bar q_B$: 1549.473679 W/m².
+- $D_{\max}$: 4.734188%.
+- $D_{pp}$: 8.206598%.
+- Heat from B per unit length, $Q'_B$: 3894.252103 W/m.
 
 ### Scope and reproducibility
 
-The selection is supported at the 12 documented geometry points with emissivities 0.6/0.8. The comparisons are differences between meshes, not rigorous error bounds, and they do not qualify other radius, offset or emissivity combinations. The interactive simulation uses a coarser mesh and is for exploration only.
+The selection is supported at the 12 documented geometry points with $\epsilon_A = 0.6$ and $\epsilon_B = 0.8$. The comparisons are differences between meshes, not rigorous error bounds, and they do not qualify other radius, offset or emissivity combinations. The interactive simulation uses a coarser mesh and is for exploration only.
 
 The interpretation of all three parameter studies is presented in PARAMETERS.md.
 
@@ -411,15 +411,15 @@ Raw case tables, angular profiles, comparison tables, source fingerprints, and s
 
 > Using the same thermodynamic model and the selected discretization, analyse the influence of parameters $r$, $d$, and $T_B$, on the deviation from uniform surface density of cylinder B.
 
-All cases use N_A = 96, N_B = 128, source integration tolerance 1e-8, R = 1 m, T_A = 30 C, epsilon_A = 0.6 and epsilon_B = 0.8. Only the named parameter changes within each study. All reported q values are segment averages.
+All cases use $N_A = 96$ and $N_B = 128$ segments, integration tolerance $10^{-8}$, $R = 1$ m, $T_A = 30$ °C, $\epsilon_A = 0.6$ and $\epsilon_B = 0.8$. Only the named parameter changes within each study. All reported values of $q$ are segment averages.
 
 **Code:** [`run_parameter_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_parameter_studies.py) runs the three studies with the selected settings using [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py). [`plot_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_studies.py) generates these figures and the written report; [`study_data.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/study_data.py) checks the recorded data and prepares the commentary.
 
 ### Center distance d
 
-At fixed r = 0.4 m and T_B = 200 °C, increasing d from 0.00 to 0.54 m increases D_max from approximately zero to 13.933%. D_pp reaches 21.358%, while mean flux changes from 1558.02 to 1521.27 W/m². The concentric point is a numerical reference; the other points are eccentric cases. For these gray-surface parameters, the narrow-gap side loses less net heat per area than the wide-gap side. A has uniform temperature but nonuniform radiosity because it also reflects the nonuniform irradiation from B. In these cases the near side of B receives more returning irradiation, reducing its net outward flux through q = epsilon_B (sigma T_B^4 - G_B). This is a coupled enclosure result, rather than a universal rule based on distance alone.
+At fixed $r$ = 0.4 m and $T_B$ = 200 °C, increasing $d$ from 0.00 to 0.54 m increases $D_{\max}$ from zero to 13.933% and $D_{pp}$ to 21.358%, while the mean flux $\bar q_B$ changes only from 1558.02 to 1521.27 W/m². The concentric case is the uniform-flux reference; all other points are eccentric. For these gray surfaces, the narrow-gap side of B loses less heat per unit area than the wide-gap side. Although A is isothermal, its radiosity is not uniform, because A also reflects the nonuniform radiation it receives from B. The narrow-gap side of B therefore receives more irradiation $G_i$, and by equation (7), $q_i=\epsilon_B(\sigma T_B^4-G_i)$, a larger irradiation gives a smaller net outward flux. The pattern results from the coupled exchange in the whole enclosure, not from the local gap width alone.
 
-| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |
+| $r$ (m) | $d$ (m) | $T_B$ (°C) | $\bar q_B$ (W/m²) | $D_{\max}$ (%) | $D_{pp}$ (%) | $Q'_B$ (W/m) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0.4 | 0 | 200 | 1558.016783 | 0.000000 | 0.000000 | 3915.723263 |
 | 0.4 | 0.09 | 200 | 1557.320269 | 1.138305 | 2.179610 | 3913.972733 |
@@ -433,9 +433,9 @@ At fixed r = 0.4 m and T_B = 200 °C, increasing d from 0.00 to 0.54 m increases
 
 ### Inner radius r
 
-At fixed d = 0.3 m and T_B = 200 °C, increasing r from 0.2 to 0.6 m increases D_max from 1.948% to 8.181%. Mean flux decreases from 1703.45 to 1420.67 W/m². The total heat per unit length changes from 2140.62 to 5355.81 W/m because the circumference also changes. Holding d fixed makes normalized eccentricity increase from 0.375 to 0.750; the minimum gap decreases from 0.50 to 0.10 m. These conclusions describe radius variation at fixed center distance, not at fixed normalized eccentricity.
+At fixed $d$ = 0.3 m and $T_B$ = 200 °C, increasing $r$ from 0.2 to 0.6 m increases $D_{\max}$ from 1.948% to 8.181%. The mean flux $\bar q_B$ decreases from 1703.45 to 1420.67 W/m², while the heat rate per unit length $Q'_B$ rises from 2140.62 to 5355.81 W/m because the circumference of B grows. With $d$ fixed, the normalized eccentricity $e=d/(R-r)$ rises from 0.375 to 0.750 and the minimum gap narrows from 0.50 to 0.10 m. These results therefore describe radius changes at fixed center distance, not at fixed $e$.
 
-| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |
+| $r$ (m) | $d$ (m) | $T_B$ (°C) | $\bar q_B$ (W/m²) | $D_{\max}$ (%) | $D_{pp}$ (%) | $Q'_B$ (W/m) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0.2 | 0.3 | 200 | 1703.454772 | 1.948488 | 3.490679 | 2140.624399 |
 | 0.3 | 0.3 | 200 | 1622.909791 | 3.233448 | 5.696237 | 3059.112885 |
@@ -447,9 +447,9 @@ At fixed d = 0.3 m and T_B = 200 °C, increasing r from 0.2 to 0.6 m increases D
 
 ### Inner temperature
 
-At fixed r = 0.4 m and d = 0.3 m, raising T_B from 60 to 400 °C increases mean flux from 144.00 to 7320.48 W/m² (a factor of 50.84). D_max remains 4.734188%: its observed range is 1.18e-12 percentage points. With fixed geometry and temperature-independent emissivities, the linear radiosity equations scale absolute flux with the difference of fourth powers of temperature. The normalized angular shape therefore remains unchanged. This does not apply automatically to materials whose emissivity changes with temperature.
+At fixed $r$ = 0.4 m and $d$ = 0.3 m, raising $T_B$ from 60 to 400 °C increases the mean flux $\bar q_B$ from 144.00 to 7320.48 W/m², a factor of 50.84. $D_{\max}$ stays at 4.734188%; across the six temperatures it varies by only $1.2\times10^{-12}$ percentage points. With fixed geometry and temperature-independent emissivities, the radiosity equations are linear and the flux scales with $\sigma(T_B^4-T_A^4)$, equation (14). The normalized angular profile is therefore unchanged. This would not hold for materials whose emissivity depends on temperature.
 
-| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |
+| $r$ (m) | $d$ (m) | $T_B$ (°C) | $\bar q_B$ (W/m²) | $D_{\max}$ (%) | $D_{pp}$ (%) | $Q'_B$ (W/m) |
 | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | 0.4 | 0.3 | 60 | 144.004152 | 4.734188 | 8.206598 | 361.921909 |
 | 0.4 | 0.3 | 100 | 406.862619 | 4.734188 | 8.206598 | 1022.557293 |
@@ -462,7 +462,7 @@ At fixed r = 0.4 m and d = 0.3 m, raising T_B from 60 to 400 °C increases mean 
 
 ### Numerical consistency
 
-Across the 19 baseline/study cases, maximum relative energy imbalance is 1.690e-12, maximum view-factor closure residual is 5.773e-15, and maximum scaled reciprocity residual is 5.605e-08. These are consistency checks; mesh selection also uses finite-refinement comparisons.
+Across the 19 cases, the largest relative energy imbalance is $1.7\times10^{-12}$, the largest view-factor closure residual is $5.8\times10^{-15}$, and the largest scaled reciprocity residual is $5.6\times10^{-8}$. These are consistency checks; the mesh itself was selected by the refinement comparisons.
 
 Reproduce with `python scripts/run_assignment.py`. Source fingerprints and raw tables are in results/studies/manifest.json, cases.csv and profiles.csv.
 
@@ -473,7 +473,7 @@ Reproduce with `python scripts/run_assignment.py`. Source fingerprints and raw t
 
 > Supplement all analyses with appropriate descriptions, diagrams, and commentary, and compare the results with analytical solutions, if find appropriate.
 
-1. The diffuse-gray radiosity model produces a nonuniform q profile in the eccentric baseline: mean q = 1549.473679 W/m², D_max = 4.734188% and D_pp = 8.206598%.
+1. The diffuse-gray radiosity model gives a nonuniform flux on B in the eccentric working case: $\bar q_B$ = 1549.473679 W/m², $D_{\max}$ = 4.734188% and $D_{pp}$ = 8.206598%.
 2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.
 3. At the stated fixed emissivities, increasing center distance or increasing radius at fixed center distance increases relative nonuniformity over the studied ranges. The two variations change enclosure geometry in different ways.
 4. Increasing prescribed inner temperature increases absolute flux, while normalized nonuniformity remains unchanged under the temperature-independent-emissivity model.

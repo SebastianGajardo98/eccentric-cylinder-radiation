@@ -148,10 +148,20 @@ def study_rows(cases, study):
     return cases[cases.study.eq(study)].sort_values("parameter_value").copy()
 
 
+# Typeset symbols for report prose; Streamlit and the PDF builder both render $...$.
+D_MAX, D_PP = r"$D_{\max}$", r"$D_{pp}$"
+
+
+def scientific(value):
+    """Typeset a small number such as 1.2e-12 as 1.2 x 10^-12."""
+    mantissa, exponent = f"{value:.1e}".split("e")
+    return rf"${mantissa}\times10^{{{int(exponent)}}}$"
+
+
 def summary_markdown(rows):
     columns = ["r", "d", "temperature_inner_c", "mean_inner_flux_w_m2",
                "max_deviation_percent", "peak_to_peak_percent", "heat_inner_w_m"]
-    lines = ["| r (m) | d (m) | T_B (C) | Mean q (W/m^2) | D_max (%) | D_pp (%) | Q'_B (W/m) |",
+    lines = [rf"| $r$ (m) | $d$ (m) | $T_B$ (°C) | $\bar q_B$ (W/m²) | {D_MAX} (%) | {D_PP} (%) | $Q'_B$ (W/m) |",
              "| ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
     for _, row in rows.iterrows():
         lines.append("| " + " | ".join(f"{row[c]:.6f}" if c not in columns[:3] else f"{row[c]:g}" for c in columns) + " |")
@@ -162,26 +172,26 @@ def discussion(cases, study):
     rows = study_rows(cases, study)
     a, b = rows.iloc[0], rows.iloc[-1]
     if study == "offset":
-        return (f"At fixed r = 0.4 m and T_B = 200 °C, increasing d from {a.d:.2f} to {b.d:.2f} m "
-                f"increases D_max from approximately zero to {b.max_deviation_percent:.3f}%. "
-                f"D_pp reaches {b.peak_to_peak_percent:.3f}%, while mean flux changes "
-                f"from {a.mean_inner_flux_w_m2:.2f} to {b.mean_inner_flux_w_m2:.2f} W/m². "
-                "The concentric point is a numerical reference; the other points are eccentric cases. "
-                "For these gray-surface parameters, the narrow-gap side loses less net heat per area than the wide-gap side. "
-                "A has uniform temperature but nonuniform radiosity because it also reflects the nonuniform irradiation from B. "
-                "In these cases the near side of B receives more returning irradiation, reducing its net outward flux through q = epsilon_B (sigma T_B^4 - G_B). "
-                "This is a coupled enclosure result, rather than a universal rule based on distance alone.")
+        return (rf"At fixed $r$ = 0.4 m and $T_B$ = 200 °C, increasing $d$ from {a.d:.2f} to {b.d:.2f} m "
+                rf"increases {D_MAX} from zero to {b.max_deviation_percent:.3f}% and {D_PP} to {b.peak_to_peak_percent:.3f}%, "
+                rf"while the mean flux $\bar q_B$ changes only from {a.mean_inner_flux_w_m2:.2f} to {b.mean_inner_flux_w_m2:.2f} W/m². "
+                "The concentric case is the uniform-flux reference; all other points are eccentric. "
+                "For these gray surfaces, the narrow-gap side of B loses less heat per unit area than the wide-gap side. "
+                "Although A is isothermal, its radiosity is not uniform, because A also reflects the nonuniform radiation it receives from B. "
+                r"The narrow-gap side of B therefore receives more irradiation $G_i$, and by equation (7), $q_i=\epsilon_B(\sigma T_B^4-G_i)$, "
+                "a larger irradiation gives a smaller net outward flux. "
+                "The pattern results from the coupled exchange in the whole enclosure, not from the local gap width alone.")
     if study == "radius":
-        return (f"At fixed d = 0.3 m and T_B = 200 °C, increasing r from {a.r:.1f} to {b.r:.1f} m "
-                f"increases D_max from {a.max_deviation_percent:.3f}% to {b.max_deviation_percent:.3f}%. "
-                f"Mean flux decreases from {a.mean_inner_flux_w_m2:.2f} to {b.mean_inner_flux_w_m2:.2f} W/m². "
-                f"The total heat per unit length changes from {a.heat_inner_w_m:.2f} to {b.heat_inner_w_m:.2f} W/m because the circumference also changes. "
-                "Holding d fixed makes normalized eccentricity increase from 0.375 to 0.750; the minimum gap decreases from 0.50 to 0.10 m. "
-                "These conclusions describe radius variation at fixed center distance, not at fixed normalized eccentricity.")
-    return (f"At fixed r = 0.4 m and d = 0.3 m, raising T_B from {a.temperature_inner_c:g} to {b.temperature_inner_c:g} °C "
-            f"increases mean flux from {a.mean_inner_flux_w_m2:.2f} to {b.mean_inner_flux_w_m2:.2f} W/m² "
-            f"(a factor of {b.mean_inner_flux_w_m2/a.mean_inner_flux_w_m2:.2f}). "
-            f"D_max remains {a.max_deviation_percent:.6f}%: its observed range is "
-            f"{rows.max_deviation_percent.max()-rows.max_deviation_percent.min():.2e} percentage points. "
-            "With fixed geometry and temperature-independent emissivities, the linear radiosity equations scale absolute flux with the difference of fourth powers of temperature. "
-            "The normalized angular shape therefore remains unchanged. This does not apply automatically to materials whose emissivity changes with temperature.")
+        return (rf"At fixed $d$ = 0.3 m and $T_B$ = 200 °C, increasing $r$ from {a.r:.1f} to {b.r:.1f} m "
+                rf"increases {D_MAX} from {a.max_deviation_percent:.3f}% to {b.max_deviation_percent:.3f}%. "
+                rf"The mean flux $\bar q_B$ decreases from {a.mean_inner_flux_w_m2:.2f} to {b.mean_inner_flux_w_m2:.2f} W/m², "
+                rf"while the heat rate per unit length $Q'_B$ rises from {a.heat_inner_w_m:.2f} to {b.heat_inner_w_m:.2f} W/m because the circumference of B grows. "
+                r"With $d$ fixed, the normalized eccentricity $e=d/(R-r)$ rises from 0.375 to 0.750 and the minimum gap narrows from 0.50 to 0.10 m. "
+                r"These results therefore describe radius changes at fixed center distance, not at fixed $e$.")
+    return (rf"At fixed $r$ = 0.4 m and $d$ = 0.3 m, raising $T_B$ from {a.temperature_inner_c:g} to {b.temperature_inner_c:g} °C "
+            rf"increases the mean flux $\bar q_B$ from {a.mean_inner_flux_w_m2:.2f} to {b.mean_inner_flux_w_m2:.2f} W/m², "
+            f"a factor of {b.mean_inner_flux_w_m2/a.mean_inner_flux_w_m2:.2f}. "
+            f"{D_MAX} stays at {a.max_deviation_percent:.6f}%; across the six temperatures it varies by only "
+            f"{scientific(rows.max_deviation_percent.max()-rows.max_deviation_percent.min())} percentage points. "
+            r"With fixed geometry and temperature-independent emissivities, the radiosity equations are linear and the flux scales with $\sigma(T_B^4-T_A^4)$, equation (14). "
+            "The normalized angular profile is therefore unchanged. This would not hold for materials whose emissivity depends on temperature.")
