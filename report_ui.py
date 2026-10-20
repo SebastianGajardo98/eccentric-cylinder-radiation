@@ -12,7 +12,7 @@ def number_columns():
     return {"r": st.column_config.NumberColumn("r (m)", format="%.2f"),
             "d": st.column_config.NumberColumn("d (m)", format="%.2f"),
             "temperature_inner_c": st.column_config.NumberColumn("T_B (°C)", format="%.0f"),
-            "mean_inner_flux_w_m2": st.column_config.NumberColumn("Mean q (W/m²)", format="%.3f"),
+            "mean_inner_flux_w_m2": st.column_config.NumberColumn("Mean q on B (W/m²)", format="%.3f"),
             "max_deviation_percent": st.column_config.NumberColumn("D_max (%)", format="%.5f"),
             "peak_to_peak_percent": st.column_config.NumberColumn("D_pp (%)", format="%.5f"),
             "heat_inner_w_m": st.column_config.NumberColumn("Q′_B (W/m)", format="%.3f"),
@@ -67,6 +67,7 @@ def discretization_page(selection, cases):
     st.subheader("Independent refinement of A and B")
     st.write("With these physical parameters fixed, refine one surface at a time, retaining equal angular arcs on each surface.")
     study = st.segmented_control("Refinement evidence", ["Outer surface A", "Inner surface B", "Integration tolerance"], default="Outer surface A", required=True, key="refinement_evidence")
+    st.write("In all three views, the mean flux, nonuniformity measures and flux profiles refer to cylinder B. The selected view identifies which surface is refined or whether the integration tolerance changes.")
     all_cases = pd.read_csv(MESH / "independent_cases.csv")
     comparisons = pd.read_csv(MESH / "independent_comparisons.csv")
     if study == "Outer surface A":
