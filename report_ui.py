@@ -60,7 +60,7 @@ def discretization_page(selection, cases):
     st.header("(a) Surface discretization")
     requirement("a")
     st.subheader("Working parameters for part (a)")
-    st.write("The assignment fixes R and T_A. We choose the remaining physical inputs for the refinement study and hold them fixed while changing the surface segment counts.")
+    st.write("The assignment fixes the radius of A and the temperature of A. We choose the remaining physical inputs for the refinement study and hold them fixed while changing the surface segment counts.")
     st.table(pd.DataFrame({"Parameter": ["R", "T_A", "r", "d", "T_B", "ε_A / ε_B"],
         "Value": ["1 m", "30 °C", "0.4 m", "0.3 m", "200 °C", "0.6 / 0.8"],
         "Source": ["Prescribed by the assignment", "Prescribed by the assignment", "Chosen for this study", "Chosen for this study", "Chosen for this study", "Chosen surface properties"]}).set_index("Parameter"))
