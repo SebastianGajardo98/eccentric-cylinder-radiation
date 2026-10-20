@@ -66,8 +66,8 @@ def discretization_page(selection, cases):
     st.table(pd.DataFrame({"Parameter": ["R", "T_A", "r", "d", "T_B", "ε_A / ε_B"],
         "Value": ["1 m", "30 °C", "0.4 m", "0.3 m", "200 °C", "0.6 / 0.8"],
         "Source": ["Prescribed by the assignment", "Prescribed by the assignment", "Chosen for this study", "Chosen for this study", "Chosen for this study", "Chosen surface properties"]}).set_index("Parameter"))
-    st.subheader("Independent refinement of A and B")
-    st.write("With these physical parameters fixed, refine one surface at a time, retaining equal angular arcs on each surface.")
+    st.subheader("Check each surface at the starting arrangement")
+    st.write("Keep the physical inputs above fixed. First check A and B separately by adding equal surface segments to one cylinder at a time. The third view checks the integration tolerance with both segment counts fixed.")
     study = st.segmented_control("Refinement evidence", ["Outer surface A", "Inner surface B", "Integration tolerance"], default="Outer surface A", required=True, key="refinement_evidence")
     st.write("In all three views, the mean flux, nonuniformity measures and flux profiles refer to cylinder B. The selected view identifies which surface is refined or whether the integration tolerance changes.")
     all_cases = pd.read_csv(MESH / "independent_cases.csv")
@@ -114,17 +114,26 @@ def discretization_page(selection, cases):
     st.write({"outer": "Outer refinement progressively stabilizes the local distribution: changing A from 96 to 192 segments changes D_max by about 0.0032 percentage points. Selection also considers the larger offsets in part (b).",
               "inner": "The 16-to-32 inner refinement changes D_max and D_pp by more than 0.1 percentage points. Finer inner meshes stabilize them. The mean heat flux changes much less, so checking total heat alone would miss insufficient resolution of local nonuniformity.",
               "integration": "Tightening integration changes D_max and D_pp by less than 2e-9 percentage points between successive tolerances here. Integration has stabilized; that does not replace refinement of the surface arcs."}[group])
-    st.subheader("Selection criteria and qualification")
+    st.subheader("Selection criteria")
     st.markdown(r"- Maximum difference between interpolated angular profiles: **below 0.5%** of the refined mean flux." + "\n" + r"- Change in $D_{\max}$: **below 0.1 percentage points**." + "\n" + r"- Change in $D_{pp}$: **below 0.1 percentage points**.")
-    st.caption("Profiles are compared by periodic interpolation of segment averages on a common 4096-angle grid. These are finite-refinement differences, not rigorous absolute error bounds.")
+    st.caption("We compare both flux curves at the same angular positions, estimating values between the calculated segment averages. Small differences show agreement between two calculations; they do not guarantee the exact error.")
+    with st.expander("How are the flux curves compared?"):
+        st.write("Different segment counts give values at different midpoint angles. Interpolation estimates values between neighbouring positions so that both curves can be compared at the same 4096 angles. The comparison wraps around the circle, connecting 360° back to 0°; this is called periodic interpolation.")
+        st.write("These 4096 angles are comparison positions, not additional surface segments. We report the differences between two numerical calculations, rather than a guaranteed bound on their distance from the exact solution.")
+    st.subheader("Check the segment counts across 12 cylinder arrangements")
+    st.write("Each arrangement specifies the radius of B and its distance from the center of A. We check 12 different arrangements used in part (b), including the starting arrangement.")
+    st.write("At every arrangement, compare 96 segments on A and 128 on B with 192 on A and 256 on B. Both surfaces are refined together in this check. The three cards below summarize all 12 comparisons and stay the same whichever view is selected above.")
     qualification = pd.read_csv(MESH / "qualification_96_128_comparisons.csv")
     with st.container(horizontal=True):
-        st.metric("Geometry points checked", str(len(qualification)), border=True)
+        st.metric("Cylinder arrangements checked", str(len(qualification)), border=True)
         st.metric("Largest profile change", f"{qualification.profile_change_percent.max():.4f}%", border=True)
         st.metric("Largest D_max or D_pp change", f"{max(qualification.max_deviation_change_pp.max(), qualification.peak_to_peak_change_pp.max()):.4f} pp", border=True)
-    st.write("At each geometry used in part (b), compare 96/128 against 192/256. All 12 points pass. At the largest offset, also compare against 384/256: the coarser 96/64 mesh misses the D_pp-change criterion (0.102032 pp), while 96/128 passes (0.059172 pp).")
-    with st.expander("Qualification table and additional high-offset check"):
+    st.write("All 12 arrangements pass the selection criteria. The largest changes shown above occur at the largest center distance, where the gap is smallest.")
+    with st.expander("Results for all 12 cylinder arrangements"):
         st.dataframe(qualification[["point", "r", "d", "profile_change_percent", "max_deviation_change_pp", "peak_to_peak_change_pp", "passes"]], column_config=number_columns(), hide_index=True, width="stretch")
+    st.subheader("Extra check at the smallest gap")
+    st.write("At the largest center distance, also compare with 384 segments on A and 256 on B. This additional comparison is separate from the three cards above. The 96/64 setting misses the D_pp-change limit (0.102032 pp), while 96/128 passes (0.059172 pp). This supports using 128 segments on B for part (b).")
+    with st.expander("Results of the extra check"):
         extra = pd.read_csv(MESH / "worst_case_comparisons.csv")
         st.dataframe(extra[extra.fine.eq("further_refined")], column_config=number_columns(), hide_index=True, width="stretch")
     st.image(str(MESH / "discretization_selection.png"), width="stretch")
