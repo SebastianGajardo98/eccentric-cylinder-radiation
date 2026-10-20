@@ -204,7 +204,7 @@ Local net flux depends on both emission and irradiation from the whole enclosure
 ## 7. Numerical checks and limits
 
 - Closure, reciprocity, nonnegativity and enclosure energy balance check numerical consistency.
-- Equal-temperature equilibrium and left/right reflection symmetry are tested at the public solver interfaces.
+- Two physical checks run automatically in the tests: with equal temperatures on A and B, the net heat flux is zero everywhere; and moving B from the right side to the left mirrors its flux profile.
 - Independent A/B surface refinement and separate integration-tolerance refinement establish finite-mesh stability for the stated study cases.
 - The selected 96/128 mesh was checked only at the 12 arrangements used in this report, with $\epsilon_A=0.6$ and $\epsilon_B=0.8$. Other cases, especially very narrow gaps or different emissivities, may need a finer mesh; obtaining a solution does not by itself show that it is accurate.
 - Infinite isothermal cylinders omit end effects, participating media, material temperature dependence and transient energy storage. Interactive motion shows successive prescribed steady states.
