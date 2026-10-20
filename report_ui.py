@@ -94,6 +94,7 @@ def discretization_page(selection, cases):
             profile["mesh"] = f"{row.n_outer}/{row.n_inner}"
             profiles.append(profile)
         st.altair_chart(angular_chart(pd.concat(profiles), group="mesh"), width="stretch")
+        st.caption("The legend lists segments on A / segments on B. All four profiles are shown with different colors and line styles; close agreement can make them nearly overlap.")
     table = comparisons[comparisons.study.eq(group)].rename(columns={"profile_change_percent": "Profile change (%)", "max_deviation_change_pp": "Max-deviation change (pp)", "peak_to_peak_change_pp": "Peak-to-peak change (pp)", "passes": "Meets criteria"})
     case_labels = {row.case: (f"{row.tolerance:.0e}" if group == "integration" else f"{row.n_outer}/{row.n_inner}") for row in all_cases.itertuples()}
     table["coarse"] = table.coarse.map(case_labels)

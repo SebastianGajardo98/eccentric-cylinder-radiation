@@ -12,7 +12,20 @@ def angular_chart(frame, quantity="deviation_percent", group=None):
                  alt.Tooltip(f"{quantity}:Q", title=title, format=".5f")],
     )
     if group:
-        chart = chart.encode(color=alt.Color(f"{group}:N", title="Case"))
+        if group == "mesh":
+            mesh_order = frame[group].drop_duplicates().tolist()
+            legend = alt.Legend(orient="bottom", direction="horizontal")
+            chart = chart.encode(
+                color=alt.Color(f"{group}:N", title="Segments A/B", sort=mesh_order,
+                                scale=alt.Scale(domain=mesh_order, scheme="tableau10"), legend=legend),
+                strokeDash=alt.StrokeDash(f"{group}:N", title="Segments A/B", sort=mesh_order,
+                    scale=alt.Scale(domain=mesh_order, range=[[1, 0], [8, 4], [2, 3], [8, 3, 2, 3]]), legend=legend),
+                tooltip=[alt.Tooltip(f"{group}:N", title="Segments A/B"),
+                         alt.Tooltip("angle_deg:Q", title="Angle (°)", format=".2f"),
+                         alt.Tooltip(f"{quantity}:Q", title=title, format=".5f")],
+            )
+        else:
+            chart = chart.encode(color=alt.Color(f"{group}:N", title="Case"))
     return chart.properties(height=320)
 
 
