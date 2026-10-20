@@ -5,7 +5,13 @@ import streamlit as st
 
 from app_charts import angular_chart, trend_chart
 from assignment_content import REQUIREMENTS
-from study_data import DATA, MESH, ROOT, STUDIES, discussion, study_rows
+from study_data import DATA, MESH, ROOT, SCRIPTS, STUDIES, concentric_table, discussion, every_distance_table, study_rows
+
+
+def source_note(description, *scripts):
+    base = "https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/"
+    links = " · ".join(f"[{script}]({base}{script})" for script in scripts)
+    st.caption(f"{description}: {links}.")
 
 
 def number_columns():
@@ -17,6 +23,8 @@ def number_columns():
             "peak_to_peak_percent": st.column_config.NumberColumn("D_pp (%)", format="%.5f"),
             "max_deviation_change_pp": st.column_config.NumberColumn("D_max change (pp)", format="%.4f"),
             "peak_to_peak_change_pp": st.column_config.NumberColumn("D_pp change (pp)", format="%.4f"),
+            "profile_change_percent": st.column_config.NumberColumn("Profile change (%)", format="%.4f"),
+            "passes": st.column_config.CheckboxColumn("Changes small enough?"),
             "heat_inner_w_m": st.column_config.NumberColumn("Q′_B (W/m)", format="%.3f"),
             "n_outer": st.column_config.NumberColumn("N_A", format="%d"),
             "n_inner": st.column_config.NumberColumn("N_B", format="%d"),
@@ -43,6 +51,7 @@ def assignment_page():
         st.markdown(f"**({part})** {text}")
     st.image(str(DATA / "geometry_and_segments.png"), width="stretch")
     st.caption("Geometry and the idea of equal-arc segmentation. The 12 A arcs and 8 B arcs are illustrative drawing choices; suitable calculation counts will be assessed in (a) Discretization.")
+    source_note("Geometry diagram", "plot_studies.py")
     st.markdown((ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"))
     st.caption("The geometry and temperatures are prescribed steady states. Interactive movement explores parameter changes; it is not a transient-heating model.")
     st.info("Read (a) Model, then (a) Discretization, then (b) Parameter studies and (c) Discussion and conclusions. Interactive simulation is separate from the fixed report results.")
@@ -84,6 +93,7 @@ def discretization_page(selection, cases):
         rows = all_cases[all_cases.case.str.startswith("tolerance_")].sort_values("tolerance", ascending=False)
         group, x, label = "integration", "tolerance", "Source integration tolerance"
         st.write("N_A = 96 and N_B = 64 remain fixed while the integration tolerance tightens from 1e-6 to 1e-9. This separates integration error from surface-discretization error.")
+    source_note("These cases are run by the independent stage; radiation is calculated by the solver", "run_discretization.py", "radiation.py")
     cols = ["n_outer", "n_inner", "tolerance", "mean_inner_flux_w_m2", "max_deviation_percent", "peak_to_peak_percent"]
     st.dataframe(rows[cols], column_config=number_columns(), hide_index=True, width="stretch")
     st.caption(r"From equation (13): $D_{\max}$ is the largest percentage departure from B's mean flux; $D_{pp}$ is the maximum-to-minimum flux difference expressed as a percentage of that mean.")
@@ -109,20 +119,22 @@ def discretization_page(selection, cases):
     else:
         st.subheader("Does adding more segments change the results?")
         st.write("We compare two calculations with different segment counts. Small differences suggest that adding more segments has little effect on the results.")
-    st.dataframe(table[["coarse", "fine", "Profile change (%)", "D_max change (pp)", "D_pp change (pp)", "Changes small enough?"]].rename(columns=comparison_labels), hide_index=True, width="stretch")
-    st.caption(r"$D_{\max}$ change and $D_{pp}$ change are absolute differences between the two calculations, in percentage points (pp). A checked box means the profile change is below 0.5% and both measure changes are below 0.1 pp.")
-    st.write({"outer": "Outer refinement progressively stabilizes the local distribution: changing A from 96 to 192 segments changes D_max by about 0.0032 percentage points. Selection also considers the larger offsets in part (b).",
-              "inner": "The 16-to-32 inner refinement changes D_max and D_pp by more than 0.1 percentage points. Finer inner meshes stabilize them. The mean heat flux changes much less, so checking total heat alone would miss insufficient resolution of local nonuniformity.",
-              "integration": "Tightening integration changes D_max and D_pp by less than 2e-9 percentage points between successive tolerances here. Integration has stabilized; that does not replace refinement of the surface arcs."}[group])
-    st.subheader("Selection criteria")
-    st.markdown(r"- Maximum difference between interpolated angular profiles: **below 0.5%** of the refined mean flux." + "\n" + r"- Change in $D_{\max}$: **below 0.1 percentage points**." + "\n" + r"- Change in $D_{pp}$: **below 0.1 percentage points**.")
-    st.caption("We compare both flux curves at the same angular positions, estimating values between the calculated segment averages. Small differences show agreement between two calculations; they do not guarantee the exact error.")
     with st.expander("How are the flux curves compared?"):
         st.write("Imagine two teams mapping brightness around a circular track. One divides the track into 8 sections and the other into 16. Each reports the average brightness of each section and plots it at that section's center. Their values therefore sit at different positions on the two maps.")
         st.write("To compare the maps fairly, draw straight lines between neighbouring values on each map. We can then read both maps at the same marked positions, estimating values between the original ones. This estimation is called **interpolation**. We do the same with the calculated flux around B, using 4096 shared angular positions.")
         st.write("Adding those comparison marks does not collect new brightness measurements. Similarly, the 4096 angles do not add surface segments or new radiation calculations; they let us compare the two existing flux curves at matching positions.")
         st.write("On a circular track, the finish connects back to the start. We also connect the last part of each curve back to the first, across 360° and 0°. Interpolation with this circular connection is called **periodic interpolation**.")
         st.write("If the two maps nearly agree, that shows their results are similar; both can still differ from the real brightness. Likewise, our comparison measures how much two numerical flux calculations differ. Small differences support stability as we add segments, but do not prove the exact error.")
+        st.markdown((ROOT / "docs" / "COMPARISON.md").read_text(encoding="utf-8"))
+    st.dataframe(table[["coarse", "fine", "Profile change (%)", "D_max change (pp)", "D_pp change (pp)", "Changes small enough?"]].rename(columns=comparison_labels), hide_index=True, width="stretch")
+    st.caption(r"$D_{\max}$ change and $D_{pp}$ change are absolute differences between the two calculations, in percentage points (pp). A checked box means the profile change is below 0.5% and both measure changes are below 0.1 pp.")
+    source_note("Profile and measure changes are calculated by compare; formulas (C1) and (C2) are explained above", "run_discretization.py")
+    st.write({"outer": "Outer refinement progressively stabilizes the local distribution: changing A from 96 to 192 segments changes D_max by about 0.0032 percentage points. Selection also considers the larger offsets in part (b).",
+              "inner": "The 16-to-32 inner refinement changes D_max and D_pp by more than 0.1 percentage points. Finer inner meshes stabilize them. The mean heat flux changes much less, so checking total heat alone would miss insufficient resolution of local nonuniformity.",
+              "integration": "Tightening integration changes D_max and D_pp by less than 2e-9 percentage points between successive tolerances here. Integration has stabilized; that does not replace refinement of the surface arcs."}[group])
+    st.subheader("Selection criteria")
+    st.markdown(r"- Maximum difference between interpolated angular profiles: **below 0.5%** of the refined mean flux." + "\n" + r"- Change in $D_{\max}$: **below 0.1 percentage points**." + "\n" + r"- Change in $D_{pp}$: **below 0.1 percentage points**.")
+    st.caption("We compare both flux curves at the same angular positions, estimating values between the calculated segment averages. Small differences show agreement between two calculations; they do not guarantee the exact error.")
     st.subheader("Check the segment counts across 12 cylinder arrangements")
     st.write("Each arrangement specifies the radius of B and its distance from the center of A. We check 12 different arrangements used in part (b), including the starting arrangement.")
     st.write("At every arrangement, compare 96 segments on A and 128 on B with 192 on A and 256 on B. Both surfaces are refined together in this check. The three cards below summarize all 12 comparisons and stay the same whichever view is selected above.")
@@ -132,21 +144,35 @@ def discretization_page(selection, cases):
         st.metric("Largest profile change", f"{qualification.profile_change_percent.max():.4f}%", border=True)
         st.metric("Largest D_max or D_pp change", f"{max(qualification.max_deviation_change_pp.max(), qualification.peak_to_peak_change_pp.max()):.4f} pp", border=True)
     st.write("All 12 arrangements pass the selection criteria. The largest changes shown above occur at the largest center distance, where the gap is smallest.")
+    source_note("The qualify stage runs these 12 comparisons", "run_discretization.py")
     with st.expander("Results for all 12 cylinder arrangements"):
         st.dataframe(qualification[["point", "r", "d", "profile_change_percent", "max_deviation_change_pp", "peak_to_peak_change_pp", "passes"]], column_config=number_columns(), hide_index=True, width="stretch")
     st.subheader("Extra check at the smallest gap")
-    st.write("At the largest center distance, also compare with 384 segments on A and 256 on B. This additional comparison is separate from the three cards above. The 96/64 setting misses the D_pp-change limit (0.102032 pp), while 96/128 passes (0.059172 pp). This supports using 128 segments on B for part (b).")
+    st.write("Keep the radius of B at 0.4 m and the center distance at 0.54 m, leaving a smallest gap of 0.06 m. At this same physical arrangement, compare four segment settings with a more detailed reference calculation: 384 segments on A and 256 on B.")
+    st.write("Each row below uses that same 384/256 reference. Only the segment setting being tested changes. The columns show how much its flux curve, D_max and D_pp differ from the reference; smaller differences mean closer agreement.")
     with st.expander("Results of the extra check"):
         extra = pd.read_csv(MESH / "worst_case_comparisons.csv")
-        st.dataframe(extra[extra.fine.eq("further_refined")], column_config=number_columns(), hide_index=True, width="stretch")
+        extra_cases = pd.read_csv(MESH / "worst_case_cases.csv")
+        mesh_labels = {row.case: f"{row.n_outer}/{row.n_inner}" for row in extra_cases.itertuples()}
+        shown = extra[extra.fine.eq("further_refined")].copy()
+        shown["coarse"] = shown.coarse.map(mesh_labels)
+        shown["fine"] = shown.fine.map(mesh_labels)
+        shown = shown.sort_values("coarse", key=lambda values: values.map(lambda value: tuple(map(int, value.split("/")))))
+        st.dataframe(shown[["coarse", "fine", "profile_change_percent", "max_deviation_change_pp", "peak_to_peak_change_pp", "passes"]].rename(columns={"coarse": "Test setting (A/B)", "fine": "Reference (A/B)"}), column_config=number_columns(), hide_index=True, width="stretch")
+        st.caption("A/B gives the segment counts on A and B. Profile change is in percent; changes in D_max and D_pp are in percentage points (pp). A checked box means all three changes meet the same limits used above.")
+    st.write("With 96/64 segments, D_pp changes by 0.102032 pp, just above our 0.1 pp limit. With 96/128, it changes by 0.059172 pp, below the limit. The latter also passes the profile and D_max limits, supporting 128 segments on B for part (b). The three cards above summarize a different comparison, 96/128 against 192/256; this extra reference is not included in those cards.")
+    source_note("The worst-case stage runs the extra check", "run_discretization.py")
     st.image(str(MESH / "discretization_selection.png"), width="stretch")
+    source_note("This figure is drawn from the recorded comparisons", "plot_discretization.py")
     st.subheader("Discretization selected for part (b)")
     st.success(f"Based on the refinement comparisons above: N_A = {selection['n_outer']}, N_B = {selection['n_inner']}, integration tolerance = 1e-8.")
+    source_note("Checks the recorded evidence and saves these settings", "finalize_discretization.py")
     st.subheader("Selected-mesh working result")
     baseline = cases[cases.case.eq("baseline")]
     st.dataframe(baseline[["mean_inner_flux_w_m2", "max_deviation_percent", "peak_to_peak_percent", "heat_inner_w_m"]], column_config=number_columns(), hide_index=True, width="stretch")
     st.image(str(DATA / "baseline_flux.png"), width="stretch")
     st.caption("Calculated segment averages at their midpoint angles; connecting lines guide the eye. The selected mesh is used unchanged in all three required parameter studies.")
+    source_note("Working-case and study figures", "plot_studies.py")
     st.download_button("Download refinement comparisons (CSV)", comparisons.to_csv(index=False), "refinement_comparisons.csv", "text/csv")
 
 
@@ -155,6 +181,7 @@ def parameters_page(cases, profiles):
     requirement("b")
     st.subheader("Study setup")
     st.write("All results below use the selected 96/128 discretization and tolerance 1e-8. R = 1 m, T_A = 30 °C and ε_A/ε_B = 0.6/0.8 remain fixed. Each study changes one named parameter.")
+    source_note("Runs the three studies with the selected settings using the same radiation solver", "run_parameter_studies.py", "radiation.py")
     labels = {"Center distance d": "offset", "Inner radius r": "radius", "Inner temperature T_B": "temperature"}
     selected = st.segmented_control("Required parameter study", list(labels), default="Center distance d", required=True, key="required_parameter")
     study = labels[selected]
@@ -171,7 +198,9 @@ def parameters_page(cases, profiles):
     frame = profiles[profiles.study.eq(study)].copy()
     units = "°C" if study == "temperature" else "m"
     frame["label"] = frame.parameter_value.map(lambda p: f"{p:g} {units}")
-    st.altair_chart(angular_chart(frame, "deviation_percent" if quantity.startswith("Deviation") else "flux_w_m2", "label"), width="stretch")
+    # Legend from the largest parameter value down, rather than alphabetical text order.
+    order = [f"{p:g} {units}" for p in sorted(frame.parameter_value.unique(), reverse=True)]
+    st.altair_chart(angular_chart(frame, "deviation_percent" if quantity.startswith("Deviation") else "flux_w_m2", "label", order), width="stretch")
     st.caption("0° is right, 90° top, 180° left and 270° bottom. Profiles use all 128 calculated B-segment averages.")
     if study == "temperature":
         st.caption("Relative profiles coincide under the fixed-emissivity assumptions.")
@@ -183,29 +212,55 @@ def parameters_page(cases, profiles):
         numerical_evidence(rows)
     with st.expander("Exportable figure with all four views"):
         st.image(str(DATA / f"{study}_study.png"), width="stretch")
+        source_note("Draws the exported study figures", "plot_studies.py")
         st.download_button("Download figure (PNG)", (DATA / f"{study}_study.png").read_bytes(), f"{study}_study.png", "image/png")
     st.download_button("Download this study (CSV)", rows.to_csv(index=False), f"{study}_cases.csv", "text/csv")
     st.download_button("Download angular profiles (CSV)", frame.drop(columns="label").to_csv(index=False), f"{study}_profiles.csv", "text/csv")
 
 
-def conclusions_page(selection, cases, manifest):
+def analytical_comparison(analytical):
+    st.subheader("Comparison with analytical solutions")
+    st.markdown((ROOT / "docs" / "ANALYTICAL.md").read_text(encoding="utf-8").split("\n", 1)[1])
+    st.markdown("**Concentric gray cylinders, equation (A4)**: r = 0.4 m, d = 0")
+    st.dataframe(concentric_table(analytical), hide_index=True, width="stretch", column_config={
+        "emissivity_outer": st.column_config.NumberColumn("ε_A", format="%.1f"),
+        "emissivity_inner": st.column_config.NumberColumn("ε_B", format="%.1f"),
+        "analytical": st.column_config.NumberColumn("Analytical q_B (W/m²)", format="%.6f"),
+        "numerical": st.column_config.NumberColumn("Numerical q_B (W/m²)", format="%.6f"),
+        "relative_difference": st.column_config.NumberColumn("Relative difference", format="%.1e"),
+        "max_deviation_percent": st.column_config.NumberColumn("Numerical D_max (%)", format="%.1e")})
+    st.markdown("**Limits that hold at every center distance, equations (A1) and (A2)**: largest difference over the 12 arrangements")
+    st.dataframe(every_distance_table(analytical), hide_index=True, width="stretch", column_config={
+        "quantity": "Quantity", "exact": "Analytical value", "arrangements": "Arrangements",
+        "largest_abs_difference": st.column_config.NumberColumn("Largest |numerical − analytical|", format="%.1e"),
+        "largest_relative_difference": st.column_config.NumberColumn("Largest relative difference", format="%.1e")})
+    st.write("The solver reproduces every closed-form result to round-off level. These limits confirm the model and its implementation; the accuracy of the eccentric gray profiles rests on the refinement study in (a).")
+    source_note("Evaluates the closed-form limits and solves the same cases", "run_analytical.py", "radiation.py")
+    st.download_button("Download analytical comparison (CSV)", analytical.to_csv(index=False), "analytical_comparison.csv", "text/csv")
+
+
+def conclusions_page(selection, cases, manifest, analytical):
     st.header("(c) Discussion and conclusions")
     requirement("c")
     st.write("Part (c) brings together the interpretation of the calculations. Its descriptions, diagrams and commentary also accompany the analyses in (a) and (b). The conclusions below refer to the stated parameter ranges and fixed emissivities.")
     for study in STUDIES:
         st.subheader(STUDIES[study][0])
         st.write(discussion(cases, study))
+    analytical_comparison(analytical)
     st.subheader("Numerical reliability and scope")
     st.write("The 96/128 mesh satisfies the documented finite-refinement criteria at all 12 geometry points, including an additional high-offset reference. These checks establish consistency and stability for the listed cases; arbitrary near-contact or different-emissivity explorations need their own convergence review.")
     numerical_evidence(cases)
+    with st.expander("Which script performs each calculation?"):
+        st.markdown((ROOT / "docs" / "CODE_GUIDE.md").read_text(encoding="utf-8"))
     st.subheader("Submission files")
-    st.write("The package includes the written model and report, all study tables and figures, the source for every analysis, tests, requirements, and reproduction instructions. It can be read and run without access to the private GitHub repository.")
+    st.write("The package includes the written model and report, all study tables and figures, the source for every analysis, tests, requirements, and reproduction instructions. It can be read and run offline, independently of GitHub.")
+    source_note("Runs every analysis in order and builds the download", "run_assignment.py", "build_submission.py")
     from build_submission import build_package
     st.download_button("Download complete submission (ZIP)", build_package(), "eccentric-cylinder-assignment.zip", "application/zip", type="primary")
     st.download_button("Download written report (Markdown)", (ROOT / "docs" / "REPORT.md").read_text(encoding="utf-8"), "REPORT.md", "text/markdown")
     st.download_button("Download all parameter results (CSV)", (DATA / "cases.csv").read_bytes(), "parameter_studies.csv", "text/csv")
-    st.code("python -m pip install -r requirements-dev.txt\npython -m pytest -q\npython run_assignment.py\npython -m streamlit run streamlit_app.py", language="powershell")
+    st.code("python -m pip install -r requirements-dev.txt\npython -m pytest -q\npython scripts/run_assignment.py\npython -m streamlit run scripts/streamlit_app.py", language="powershell")
     with st.expander("Numerical source and provenance"):
-        st.code((ROOT / "radiation.py").read_text(encoding="utf-8"), language="python")
+        st.code((SCRIPTS / "radiation.py").read_text(encoding="utf-8"), language="python")
         st.caption("View factors retain circular arcs and visibility. The solver does not normalize or symmetrize the computed factor matrix to hide numerical residuals.")
         st.json(manifest)

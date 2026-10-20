@@ -6,7 +6,7 @@ from streamlit.testing.v1 import AppTest
 
 
 def test_report_navigation_and_all_required_studies_render():
-    app = AppTest.from_file(Path(__file__).resolve().parents[1]/"streamlit_app.py", default_timeout=30).run()
+    app = AppTest.from_file(Path(__file__).resolve().parents[1]/"scripts"/"streamlit_app.py", default_timeout=30).run()
     assert app.radio(key="report_section").value == "Assignment"
     assert not app.exception and not app.error
     app.button(key="next_section").click().run()

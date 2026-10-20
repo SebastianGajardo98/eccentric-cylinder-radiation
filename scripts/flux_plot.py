@@ -1,4 +1,4 @@
-"""Surface-normal flux glyphs, with a shared scale for case playback.
+"""Surface-normal flux glyphs, with a shared scale across several cases.
 
 The arrows interpolate segment-averaged flux onto evenly spaced directions.
 They are not radiation-ray trajectories. Their lengths are diagram lengths,
@@ -59,7 +59,7 @@ def arrow_samples(result, representation, arrow_count):
 def arrow_length_scale(results, representation, detail, length_contrast=1):
     """One linear display scale; no individual arrows are clipped/rescaled.
 
-    Fit every case so a shared scale can be used throughout playback. A global
+    Fit every case so one shared scale can be used for all of them. A global
     minimum-gap bound keeps enclosure glyphs within the outer wall. In detail
     view the absent outer wall does not limit the glyphs.
     """

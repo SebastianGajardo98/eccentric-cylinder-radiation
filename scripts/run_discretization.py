@@ -1,10 +1,11 @@
 """Reproducible independent refinement and mesh qualification for part (a).
 
-Usage: python run_discretization.py --stage independent
-       python run_discretization.py --stage qualify --outer 96 --inner 64
+Usage: python scripts/run_discretization.py --stage independent
+       python scripts/run_discretization.py --stage qualify --outer 96 --inner 128
 
 Computational caches are local to tmp/; all physical outputs include parameters,
-diagnostics and source fingerprints. No analytical comparisons are performed.
+diagnostics and source fingerprints. Closed-form limits are compared separately
+in run_analytical.py.
 """
 
 import argparse
@@ -12,34 +13,30 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import asdict
 import hashlib
 import json
-from pathlib import Path
 import time
 
 import numpy as np
 import pandas as pd
 
 from radiation import Geometry, ViewFactors, calculate_view_factors, solve_radiation
-from study_data import source_hash
+from study_data import MESH as OUTPUT, ROOT, SCRIPTS, source_hash
 
-OUTPUT = Path("results/discretization")
+CACHE = ROOT / "tmp" / "view_factor_cache"
 THERMAL = dict(temperature_outer_k=303.15, temperature_inner_k=473.15,
                emissivity_outer=0.6, emissivity_inner=0.8)
 PROFILE_LIMIT = 0.5
 METRIC_LIMIT = 0.1
 
 
-def run_case(spec):
-    g = Geometry(r=spec["r"], d=spec["d"], n_outer=spec["n_outer"], n_inner=spec["n_inner"])
-    tol = spec.get("tolerance", 1e-8)
-    fingerprint = source_hash()
-    key = json.dumps([asdict(g), tol, fingerprint], sort_keys=True)
-    cache = Path("tmp/view_factor_cache") / (hashlib.sha256(key.encode()).hexdigest() + ".npz")
+def load_view_factors(g, tol):
+    """Return view factors for this geometry, reusing the local cache when possible."""
+    key = json.dumps([asdict(g), tol, source_hash()], sort_keys=True)
+    cache = CACHE / (hashlib.sha256(key.encode()).hexdigest() + ".npz")
     cache.parent.mkdir(parents=True, exist_ok=True)
-    start = time.perf_counter()
     # Reuse an older cache only when its raw-byte fingerprint matches the
     # current source exactly. The new key canonicalizes line endings.
     if not cache.exists():
-        raw_hash = hashlib.sha256(Path("radiation.py").read_bytes()).hexdigest()
+        raw_hash = hashlib.sha256((SCRIPTS / "radiation.py").read_bytes()).hexdigest()
         legacy_key = json.dumps([asdict(g), tol, raw_hash], sort_keys=True)
         legacy = cache.parent / (hashlib.sha256(legacy_key.encode()).hexdigest()+".npz")
         if legacy.exists():
@@ -52,6 +49,15 @@ def run_case(spec):
         model = calculate_view_factors(g, tol)
         np.savez_compressed(cache, factors=model.factors, areas=model.areas,
                             angles=model.angles, error=model.estimated_integration_error)
+    return model, cached
+
+
+def run_case(spec):
+    g = Geometry(r=spec["r"], d=spec["d"], n_outer=spec["n_outer"], n_inner=spec["n_inner"])
+    tol = spec.get("tolerance", 1e-8)
+    fingerprint = source_hash()
+    start = time.perf_counter()
+    model, cached = load_view_factors(g, tol)
     thermal = dict(THERMAL, temperature_inner_k=spec.get("temperature_inner_k", 473.15))
     result = solve_radiation(model, **thermal)
     record = {**spec, "tolerance": tol, "R": 1.0, **thermal,

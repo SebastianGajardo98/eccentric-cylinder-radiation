@@ -11,7 +11,7 @@ import pandas as pd
 import scipy
 
 from run_discretization import run_case
-from study_data import DATA, MESH, ROOT, load_studies, source_hash, text_hash
+from study_data import DATA, MESH, SCRIPTS, load_studies, source_hash, text_hash
 
 
 def main(workers=3):
@@ -42,7 +42,7 @@ def main(workers=3):
     pd.DataFrame(records).to_csv(DATA / "cases.csv", index=False, lineterminator="\n")
     pd.concat(profiles, ignore_index=True).to_csv(DATA / "profiles.csv", index=False, lineterminator="\n")
     manifest = {
-        "solver_sha256": source_hash(), "generator_sha256": hashlib.sha256((ROOT / "run_parameter_studies.py").read_text(encoding="utf-8").encode("utf-8")).hexdigest(),
+        "solver_sha256": source_hash(), "generator_sha256": hashlib.sha256((SCRIPTS / "run_parameter_studies.py").read_text(encoding="utf-8").encode("utf-8")).hexdigest(),
         "n_outer": selected["n_outer"], "n_inner": selected["n_inner"],
         "integration_tolerance": selected["integration_tolerance"], "case_count": len(records),
         "temperature_inner_c": [60, 100, 150, 200, 300, 400],

@@ -13,7 +13,40 @@
 
 Final one-parameter sweeps: e = 0, 0.15, 0.30, 0.45, 0.60, 0.75, 0.90 at r = 0.4 m; r = 0.2, 0.3, 0.4, 0.5, 0.6 m at fixed d = 0.3 m; T_B = 60 to 400 C at baseline geometry. Fix both emissivities throughout. The minimum gap among these geometry points is 0.06 m. The concentric point is a numerical boundary check and a useful starting point for the eccentricity sweep.
 
+## How results from two calculations are compared
+
+This is a numerical comparison after the radiation equations have been solved. It defines the **Profile change (%)** column; it is separate from the physical model in equations (1)–(14).
+
+Call the first calculation $c$ and the more resolved calculation $f$. For a surface-refinement comparison, $f$ has more segments. For an integration-tolerance comparison, both segment counts stay fixed and $f$ uses the tighter tolerance.
+
+Let $\widetilde q_c$ and $\widetilde q_f$ be the two B-flux curves obtained by straight-line, periodic interpolation of the calculated segment averages at their midpoint angles. Compare them at the same positions, $\theta_k=360^\circ k/4096$, for $k=0,\ldots,4095$:
+
+$$
+C_q=100\frac{\displaystyle\max_{k=0,\ldots,4095}
+\left|\widetilde q_c(\theta_k)-\widetilde q_f(\theta_k)\right|}
+{|\bar q_{B,f}|}.
+\tag{C1}
+$$
+
+In words: find the largest separation between the two flux curves, divide by the more resolved calculation's mean flux from equation (12), and multiply by 100. This gives **Profile change (%)**.
+
+The 4096 angles are a chosen comparison setting. They add no surface segments or new radiation solutions. Periodic interpolation connects the last angular values back to the first across 360° and 0°.
+
+The other two change columns use the $D_{\max}$ and $D_{pp}$ values from equation (13), calculated from each solution's original segment averages:
+
+$$
+\Delta D_{\max}=|D_{\max,c}-D_{\max,f}|,\qquad
+\Delta D_{pp}=|D_{pp,c}-D_{pp,f}|.
+\tag{C2}
+$$
+
+These changes are measured in **percentage points (pp)**. Small changes support stability under refinement; they do not give a guaranteed bound on the error relative to the exact solution.
+
+**Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `compare`, implements (C1), (C2), the 4096 comparison angles and periodic interpolation. The same function is used for the independent surface checks, integration-tolerance checks, 12-arrangement check and extra smallest-gap check.
+
 ## Independent baseline refinement
+
+**Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `independent`, runs the surface and integration-tolerance cases using [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py).
 
 The outer surface was refined through 24, 48, 96 and 192 segments with the inner surface held at 128. The inner surface was refined through 16, 32, 64 and 128 segments with the outer surface held at 192. This separates their effects; both surfaces were not simply increased together.
 
@@ -34,6 +67,8 @@ Accept changes below 0.5% in the maximum difference of interpolated flux profile
 
 Each of the 12 distinct geometry points was compared at 96/128 and 192/256 segments. All pass the three criteria.
 
+**Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `qualify`, runs these arrangements and compares both meshes using `compare`.
+
 | Study point | e | Profile change (%) | D_max change (pp) | D_pp change (pp) |
 | --- | ---: | ---: | ---: | ---: |
 | baseline | 0.500 | 0.005695 | 0.005491 | 0.006929 |
@@ -53,6 +88,8 @@ Each of the 12 distinct geometry points was compared at 96/128 and 192/256 segme
 
 At e = 0.9, the coarser 96/64 mesh passes comparison with 192/128. Its D_pp nevertheless differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.
 
+**Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `worst_case`, runs these additional resolutions at the same smallest-gap arrangement.
+
 ## Integration and temperature checks
 
 At 96/64 baseline resolution, tightening source integration from 1e-6 through 1e-9 changes the nonuniformity metrics by less than 2e-9 percentage points between successive tolerances. At the selected 96/128 resolution, a 1e-8 versus 1e-9 check was also run at the baseline and at e = 0.9.
@@ -67,6 +104,8 @@ Across the selected-mesh qualification and reference cases, the maximum relative
 ## Decision based on the refinement evidence
 
 Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with source-arc integration tolerance **1e-8**, for the documented final parameter-study points. This is a recommended study setting; the interactive app keeps Preview and Custom resolutions available.
+
+**Code:** [`finalize_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/finalize_discretization.py) checks the recorded evidence and saves the selected settings. [`plot_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_discretization.py) draws the selection-evidence figure.
 
 ## Selected-mesh baseline result
 
@@ -84,12 +123,12 @@ The numerical scope follows the requested assignment requirements. The interpret
 Run the following from the repository directory (local caches in tmp/ make repeat runs faster):
 
 ```powershell
-python run_discretization.py --stage independent
-python run_discretization.py --stage worst-case
-python run_discretization.py --stage qualify --outer 96 --inner 128
-python run_discretization.py --stage support --outer 96 --inner 128
-python finalize_discretization.py
-python plot_discretization.py
+python scripts/run_discretization.py --stage independent
+python scripts/run_discretization.py --stage worst-case
+python scripts/run_discretization.py --stage qualify --outer 96 --inner 128
+python scripts/run_discretization.py --stage support --outer 96 --inner 128
+python scripts/finalize_discretization.py
+python scripts/plot_discretization.py
 ```
 
 Raw case tables, angular profiles, comparison tables, source fingerprints, and selected settings are stored in results/discretization/. The completed parameter studies use this selected mesh; see PARAMETERS.md and REPORT.md.

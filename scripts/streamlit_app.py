@@ -14,7 +14,7 @@ from app_charts import angular_chart
 from assignment_content import TITLE
 from flux_plot import arrow_samples, geometry_chart
 from radiation import Geometry, ViewFactors, calculate_view_factors, solve_radiation
-from study_data import ROOT, load_studies, source_hash
+from study_data import ROOT, load_analytical, load_studies, source_hash
 import report_ui
 
 
@@ -25,6 +25,9 @@ st.set_page_config(page_title=TITLE, layout="wide", initial_sidebar_state="expan
 st.title(TITLE)
 st.caption("Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer · Numerical view-factor analysis")
 
+# About half the cost of the report mesh; at the report's starting arrangement and
+# smallest gap, D_max and D_pp stay within about 0.2 percentage points of it.
+PREVIEW_MESH = (48, 64)
 SECTIONS = ["Assignment", "(a) Model", "(a) Discretization", "(b) Parameter studies", "(c) Discussion and conclusions", "Interactive simulation"]
 if st.session_state.get("report_section") == "Overview":
     st.session_state.report_section = "Assignment"
@@ -38,9 +41,10 @@ with st.sidebar:
 
 try:
     selection, cases, profiles, manifest = load_studies()
+    analytical = load_analytical(selection)
 except (FileNotFoundError, ValueError) as error:
     st.error(f"The completed report data need regeneration: {error}")
-    st.code("python run_assignment.py")
+    st.code("python scripts/run_assignment.py")
     st.stop()
 
 
@@ -97,11 +101,11 @@ elif section == "(a) Discretization":
 elif section == "(b) Parameter studies":
     report_ui.parameters_page(cases, profiles)
 elif section == "(c) Discussion and conclusions":
-    report_ui.conclusions_page(selection, cases, manifest)
+    report_ui.conclusions_page(selection, cases, manifest, analytical)
 else:
     st.header("Interactive steady-state simulation")
     st.write("Explore how geometry and prescribed temperature change the flux on B. The completed report results in (a) and (b) keep their documented fixed parameters.")
-    settings = st.session_state.get("sim_inputs", {"r": .4, "position": .5, "temperature": 200.0, "epsilon_a": .6, "epsilon_b": .8, "quality": "Selected", "na": 96, "nb": 128, "tolerance": 1e-8})
+    settings = st.session_state.get("sim_inputs", {"r": .4, "position": .5, "temperature": 200.0, "epsilon_a": .6, "epsilon_b": .8, "quality": "Preview", "na": 96, "nb": 128, "tolerance": 1e-8})
     with st.sidebar:
         st.subheader("Physical parameters")
         radius = st.slider("Inner radius r (m)", .1, .8, settings["r"], .05, key="sim_radius")
@@ -113,13 +117,13 @@ else:
         with st.expander("Numerical settings"):
             options = ["Selected", "Preview", "Custom"]
             quality = st.selectbox("Surface resolution", options, index=options.index(settings["quality"]), key="sim_quality")
-            na, nb = (selection["n_outer"], selection["n_inner"]) if quality == "Selected" else (24, 16)
+            na, nb = (selection["n_outer"], selection["n_inner"]) if quality == "Selected" else PREVIEW_MESH
             tolerance = 1e-8
             if quality == "Custom":
                 na = int(st.number_input("Segments on A", 4, 512, settings["na"], 1, key="sim_na"))
                 nb = int(st.number_input("Segments on B", 4, 512, settings["nb"], 1, key="sim_nb"))
                 tolerance = st.select_slider("Integration tolerance", [1e-6, 1e-7, 1e-8, 1e-9], value=settings["tolerance"], format_func=lambda n: f"{n:.0e}", key="sim_tolerance")
-            st.caption("Selected is the report mesh. Preview is faster; Custom changes numerical resolution, not the physical geometry.")
+            st.caption(f"Preview ({PREVIEW_MESH[0]}/{PREVIEW_MESH[1]}) takes about half the time of the report mesh; at the report's starting arrangement and smallest gap, its D_max and D_pp differ from the report mesh by at most about 0.2 percentage points. Selected reproduces the report mesh exactly. Custom changes numerical resolution, not the physical geometry.")
         st.caption(f"Calculation: {na} A arcs / {nb} B arcs, tolerance {tolerance:.0e}")
     st.session_state.sim_inputs = {"r": radius, "position": position, "temperature": temperature, "epsilon_a": epsilon_a, "epsilon_b": epsilon_b, "quality": quality, "na": na if quality == "Custom" else settings["na"], "nb": nb if quality == "Custom" else settings["nb"], "tolerance": tolerance}
     if na+nb > 640:
@@ -127,19 +131,23 @@ else:
         st.stop()
     geometry = Geometry(r=radius, d=abs(position)*(1-radius), side="left" if position < 0 else "right", n_outer=na, n_inner=nb)
     thermal = {"temperature_outer_k": 303.15, "temperature_inner_k": temperature+273.15, "emissivity_outer": epsilon_a, "emissivity_inner": epsilon_b}
-    with st.spinner("Calculating circular-arc view factors and surface flux…"):
+    with st.spinner("Calculating circular-arc view factors and surface flux… A new position or radius takes several seconds; temperature and emissivity changes reuse the view factors."):
         factors = cached_factors(geometry, tolerance, source_hash())
         result = solve_radiation(factors, **thermal)
+    report_ui.source_note("Calculates the current view factors, radiosity and flux; equations (1)–(13) are explained in (a) Model", "radiation.py")
     metrics = result.metrics
     with st.container(horizontal=True):
         st.metric("Mean q on B", f"{metrics['mean_inner_flux_w_m2']:.2f} W/m²", border=True)
         st.metric("D_max", f"{metrics['max_deviation_percent']:.3f}%", border=True)
         st.metric("D_pp", f"{metrics['peak_to_peak_percent']:.3f}%", border=True)
+    if quality == "Preview":
+        st.caption("Preview mesh: values can differ slightly from the report tables. Choose Selected under Numerical settings to reproduce the report mesh.")
     figure = geometry_chart(result, representation="net", detail=False, arrow_count=8, uniform_reference=False, length_contrast=1)
     st.pyplot(figure, width="stretch")
     plt.close(figure)
     st.caption(f"A and B share the same physical scale. Center distance d = {geometry.d:.3f} m; B center x = {geometry.center_x:+.3f} m. Minimum gap = {1-radius-geometry.d:.3f} m. The eight outward arrows interpolate local net flux between segment averages; they are not individual radiation rays.")
     st.caption("Arrow lengths fit the available gap and therefore rescale between positions. Use numerical values and the fixed-scale comparison below for changes between positions.")
+    report_ui.source_note("Interpolates the eight directional arrow values and draws the geometry", "flux_plot.py")
     frame = pd.DataFrame({"angle_deg": np.degrees(factors.angles[na:]), "flux_w_m2": result.inner_flux,
                           "deviation_percent": 100*(result.inner_flux-metrics["mean_inner_flux_w_m2"])/abs(metrics["mean_inner_flux_w_m2"])})
     st.subheader("Deviation from uniform surface flux")
@@ -150,6 +158,7 @@ else:
     rule = alt.Chart(pd.DataFrame({field: [baseline]})).mark_rule(strokeDash=[5, 4], color="#64748b").encode(y=f"{field}:Q")
     st.altair_chart(chart+rule, width="stretch")
     st.caption("0° right · 90° top · 180° left · 270° bottom. Each calculated value is a segment average; connecting lines guide the eye.")
+    report_ui.source_note("Displays the calculated angular profiles; the 4096-angle setting is used only in the report's refinement comparisons", "app_charts.py", "streamlit_app.py")
     with st.expander("Compare eight directions on a fixed flux scale"):
         directional_comparison(result)
     with st.expander("Numerical checks and current simulation data"):

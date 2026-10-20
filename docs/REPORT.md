@@ -23,7 +23,7 @@ Temperature notation: $\vartheta_A$ and $\vartheta_B$ in the assignment are writ
 
 ## Objective and numerical scope
 
-Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses. The agreed submission scope does not include comparison against analytical solutions.
+Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses.
 
 ![Geometry and surface segments](../results/studies/geometry_and_segments.png)
 
@@ -80,6 +80,8 @@ a_A=R\Delta\theta_A,\qquad a_B=r\Delta\theta_B.
 $$
 
 The $a_i$ have units m² per m of axial length (equivalently m). Flux density $q_i$ has units W/m²; heat rate per axial length $Q'$ has units W/m. These are different quantities, particularly when radius changes. The reported local numerical flux is an arc average, rather than an exact pointwise value.
+
+**Code:** [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py) defines the circular geometry and equal-arc areas used in (1).
 
 ### 3. Derivation of the diffuse-gray energy balance
 
@@ -147,6 +149,8 @@ $$
 
 Diffuse-gray radiosity and irradiation are described in the [COMSOL surface-radiation theory reference](https://doc.comsol.com/6.3/doc/com.comsol.help.heat/heat_ug_theory.07.051.html). The sign convention here is positive outward.
 
+**Code:** In [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py), `solve_radiation` solves (6), evaluates irradiation with (3), and calculates net flux with (7). `RadiationResult.metrics` evaluates the heat rates and energy balance in (8).
+
 ### 4. View factors for infinitely long cylinders
 
 **Symbols in equations (9) and (10)**
@@ -193,6 +197,8 @@ $$
 
 A midpoint ray identifies the first intersected receiver in each interval. Tangent directions account for the shadow cast by B. Average the resulting directional factors over each source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, maximum norm). The integration tolerance controls this numerical integration and is assessed separately from the surface segment counts in the discretization study.
 
+**Code:** [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py), function `calculate_view_factors`, implements the view factors, visibility and adaptive source-arc integration. Integration tolerance is a chosen numerical setting for evaluating this integral, rather than a physical input or another radiation equation.
+
 No row normalization, symmetrization or smoothing is applied to hide integration residuals. For this closed enclosure, checks include:
 
 - Nonnegativity, $F_{ij}\geq 0$ **(a radiation fraction cannot be negative)**.
@@ -225,6 +231,8 @@ $$
 
 Both are percentages. Differences between these metrics on two meshes are expressed in **percentage points**. Relative nonuniformity is undefined at effectively zero mean flux. Assignment cases use $T_B>T_A$ and have positive mean flux.
 
+**Code:** [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py), property `RadiationResult.metrics`, computes the mean flux, $D_{\max}$ and $D_{pp}$ from the original segment-average fluxes. Comparing two solutions later uses separate numerical formulas (C1) and (C2), introduced in (a) Discretization.
+
 Uniformity means that the angular flux equals the current surface mean everywhere. Comparing against a separate concentric calculation answers a different question and is not used as the definition of nonuniformity here.
 
 ### 6. Temperature dependence and interpretation
@@ -240,15 +248,20 @@ $$
 
 Changing $T_B$ scales absolute flux but leaves the normalized angular profile unchanged under these assumptions. This model consequence is checked using the six numerical temperature cases in part (b).
 
+**Code:** [`run_parameter_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_parameter_studies.py) runs those six temperatures using the same solver. [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `supporting_checks`, also checks temperature scaling at the starting and largest-offset arrangements.
+
 Local net flux depends on both emission and irradiation from the whole enclosure, including diffuse reflections. It is not determined by local gap distance alone. The narrow-gap and wide-gap trends stated in the report refer to the calculated gray-surface cases.
 
 ### 7. Numerical checks and limits
 
 - Closure, reciprocity, nonnegativity and enclosure energy balance check numerical consistency.
 - Equal-temperature equilibrium and left/right reflection symmetry are tested at the public solver interfaces.
+- Closed-form concentric gray, black-body and whole-body view-factor results are compared in (c), equations (A1)–(A4).
 - Independent A/B surface refinement and separate integration-tolerance refinement establish finite-mesh stability for the stated study cases.
 - Very narrow gaps, other radii or different emissivities can require additional refinement. A successful solve is not an accuracy guarantee for arbitrary inputs.
 - Infinite isothermal cylinders omit end effects, participating media, material temperature dependence and transient energy storage. Interactive motion shows successive prescribed steady states.
+
+**Code:** The physical solver checks are in [`tests/test_solver.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/tests/test_solver.py); the recorded-study and data-integrity checks are in [`tests/test_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/tests/test_studies.py). The surface-refinement evidence is generated by [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py).
 
 
 ## Part (a): discretization selection
@@ -270,7 +283,40 @@ Local net flux depends on both emission and irradiation from the whole enclosure
 
 Final one-parameter sweeps: e = 0, 0.15, 0.30, 0.45, 0.60, 0.75, 0.90 at r = 0.4 m; r = 0.2, 0.3, 0.4, 0.5, 0.6 m at fixed d = 0.3 m; T_B = 60 to 400 C at baseline geometry. Fix both emissivities throughout. The minimum gap among these geometry points is 0.06 m. The concentric point is a numerical boundary check and a useful starting point for the eccentricity sweep.
 
+### How results from two calculations are compared
+
+This is a numerical comparison after the radiation equations have been solved. It defines the **Profile change (%)** column; it is separate from the physical model in equations (1)–(14).
+
+Call the first calculation $c$ and the more resolved calculation $f$. For a surface-refinement comparison, $f$ has more segments. For an integration-tolerance comparison, both segment counts stay fixed and $f$ uses the tighter tolerance.
+
+Let $\widetilde q_c$ and $\widetilde q_f$ be the two B-flux curves obtained by straight-line, periodic interpolation of the calculated segment averages at their midpoint angles. Compare them at the same positions, $\theta_k=360^\circ k/4096$, for $k=0,\ldots,4095$:
+
+$$
+C_q=100\frac{\displaystyle\max_{k=0,\ldots,4095}
+\left|\widetilde q_c(\theta_k)-\widetilde q_f(\theta_k)\right|}
+{|\bar q_{B,f}|}.
+\tag{C1}
+$$
+
+In words: find the largest separation between the two flux curves, divide by the more resolved calculation's mean flux from equation (12), and multiply by 100. This gives **Profile change (%)**.
+
+The 4096 angles are a chosen comparison setting. They add no surface segments or new radiation solutions. Periodic interpolation connects the last angular values back to the first across 360° and 0°.
+
+The other two change columns use the $D_{\max}$ and $D_{pp}$ values from equation (13), calculated from each solution's original segment averages:
+
+$$
+\Delta D_{\max}=|D_{\max,c}-D_{\max,f}|,\qquad
+\Delta D_{pp}=|D_{pp,c}-D_{pp,f}|.
+\tag{C2}
+$$
+
+These changes are measured in **percentage points (pp)**. Small changes support stability under refinement; they do not give a guaranteed bound on the error relative to the exact solution.
+
+**Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `compare`, implements (C1), (C2), the 4096 comparison angles and periodic interpolation. The same function is used for the independent surface checks, integration-tolerance checks, 12-arrangement check and extra smallest-gap check.
+
 ### Independent baseline refinement
+
+**Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `independent`, runs the surface and integration-tolerance cases using [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py).
 
 The outer surface was refined through 24, 48, 96 and 192 segments with the inner surface held at 128. The inner surface was refined through 16, 32, 64 and 128 segments with the outer surface held at 192. This separates their effects; both surfaces were not simply increased together.
 
@@ -291,6 +337,8 @@ Accept changes below 0.5% in the maximum difference of interpolated flux profile
 
 Each of the 12 distinct geometry points was compared at 96/128 and 192/256 segments. All pass the three criteria.
 
+**Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `qualify`, runs these arrangements and compares both meshes using `compare`.
+
 | Study point | e | Profile change (%) | D_max change (pp) | D_pp change (pp) |
 | --- | ---: | ---: | ---: | ---: |
 | baseline | 0.500 | 0.005695 | 0.005491 | 0.006929 |
@@ -310,6 +358,8 @@ Each of the 12 distinct geometry points was compared at 96/128 and 192/256 segme
 
 At e = 0.9, the coarser 96/64 mesh passes comparison with 192/128. Its D_pp nevertheless differs from the additional 384/256 reference by 0.102032 percentage points, just above the threshold. Increasing the inner grid to 128 reduces the difference to 0.059172 percentage points and the profile difference to 0.056176%. This additional check avoids relying on a marginal first comparison.
 
+**Code:** [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `worst_case`, runs these additional resolutions at the same smallest-gap arrangement.
+
 ### Integration and temperature checks
 
 At 96/64 baseline resolution, tightening source integration from 1e-6 through 1e-9 changes the nonuniformity metrics by less than 2e-9 percentage points between successive tolerances. At the selected 96/128 resolution, a 1e-8 versus 1e-9 check was also run at the baseline and at e = 0.9.
@@ -324,6 +374,8 @@ Across the selected-mesh qualification and reference cases, the maximum relative
 ### Decision based on the refinement evidence
 
 Use **96 equal angular segments on cylinder A and 128 on cylinder B**, with source-arc integration tolerance **1e-8**, for the documented final parameter-study points. This is a recommended study setting; the interactive app keeps Preview and Custom resolutions available.
+
+**Code:** [`finalize_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/finalize_discretization.py) checks the recorded evidence and saves the selected settings. [`plot_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_discretization.py) draws the selection-evidence figure.
 
 ### Selected-mesh baseline result
 
@@ -341,12 +393,12 @@ The numerical scope follows the requested assignment requirements. The interpret
 Run the following from the repository directory (local caches in tmp/ make repeat runs faster):
 
 ```powershell
-python run_discretization.py --stage independent
-python run_discretization.py --stage worst-case
-python run_discretization.py --stage qualify --outer 96 --inner 128
-python run_discretization.py --stage support --outer 96 --inner 128
-python finalize_discretization.py
-python plot_discretization.py
+python scripts/run_discretization.py --stage independent
+python scripts/run_discretization.py --stage worst-case
+python scripts/run_discretization.py --stage qualify --outer 96 --inner 128
+python scripts/run_discretization.py --stage support --outer 96 --inner 128
+python scripts/finalize_discretization.py
+python scripts/plot_discretization.py
 ```
 
 Raw case tables, angular profiles, comparison tables, source fingerprints, and selected settings are stored in results/discretization/. The completed parameter studies use this selected mesh; see PARAMETERS.md and REPORT.md.
@@ -363,6 +415,8 @@ Raw case tables, angular profiles, comparison tables, source fingerprints, and s
 > Using the same thermodynamic model and the selected discretization, analyse the influence of parameters $r$, $d$, and $\vartheta_B$, on the deviation from uniform surface density of cylinder B.
 
 All cases use N_A = 96, N_B = 128, source integration tolerance 1e-8, R = 1 m, T_A = 30 C, epsilon_A = 0.6 and epsilon_B = 0.8. Only the named parameter changes within each study. All reported q values are segment averages.
+
+**Code:** [`run_parameter_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_parameter_studies.py) runs the three studies with the selected settings using [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py). [`plot_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_studies.py) generates these figures and the written report; [`study_data.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/study_data.py) checks the recorded data and prepares the commentary.
 
 ### Center distance d
 
@@ -413,7 +467,7 @@ At fixed r = 0.4 m and d = 0.3 m, raising T_B from 60 to 400 °C increases mean 
 
 Across the 19 baseline/study cases, maximum relative energy imbalance is 1.690e-12, maximum view-factor closure residual is 5.773e-15, and maximum scaled reciprocity residual is 5.605e-08. These are consistency checks; mesh selection also uses finite-refinement comparisons.
 
-Reproduce with `python run_assignment.py`. Source fingerprints and raw tables are in results/studies/manifest.json, cases.csv and profiles.csv.
+Reproduce with `python scripts/run_assignment.py`. Source fingerprints and raw tables are in results/studies/manifest.json, cases.csv and profiles.csv.
 
 
 ## Part (c): discussion and conclusions
@@ -426,7 +480,69 @@ Reproduce with `python run_assignment.py`. Source fingerprints and raw tables ar
 2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.
 3. At the stated fixed emissivities, increasing center distance or increasing radius at fixed center distance increases relative nonuniformity over the studied ranges. The two variations change enclosure geometry in different ways.
 4. Increasing prescribed inner temperature increases absolute flux, while normalized nonuniformity remains unchanged under the temperature-independent-emissivity model.
-5. Interactive motion and playback display successive steady states, not physical transient heating. Mirroring B across the y-axis mirrors its flux profile without changing scalar heat-rate or nonuniformity measures.
+5. Interactive motion displays successive steady states, not physical transient heating. Mirroring B across the y-axis mirrors its flux profile without changing scalar heat-rate or nonuniformity measures.
+6. Where closed-form solutions exist, the solver reproduces them: concentric gray cylinders for four emissivity pairs, black surfaces and whole-body view factors at all 12 arrangements, with a largest relative flux difference of 2.1e-15.
+
+### Comparison with analytical solutions
+
+The assignment states that the flux density on B is uniform when the cylinders are concentric or when both are black bodies. Both limits have closed-form solutions, and so do the whole-body view factors at every center distance. They give exact references for the model in (a). The eccentric diffuse-gray case has no closed-form solution, which is why the view-factor method is needed there.
+
+**Whole-body view factors.** B is convex and completely surrounded by A, so all radiation leaving B reaches A. Reciprocity with the areas per unit length $2\pi R$ and $2\pi r$, followed by closure for A, gives
+
+$$
+F_{BA}=1,\qquad F_{AB}=\frac{r}{R},\qquad F_{AA}=1-\frac{r}{R}.
+\tag{A1}
+$$
+
+These values hold for every center distance $d$. The numerical whole-body factors are area-weighted sums of the arc factors, for example $F_{AB}=\sum_{i\in A}a_i\sum_{j\in B}F_{ij}\,/\sum_{i\in A}a_i$.
+
+**Black surfaces.** With $\epsilon_A=\epsilon_B=1$, equation (2) gives $J_i=\sigma T_i^4$. Every arc on B sees only A, so $\sum_{j\in A}F_{ij}=1$ and equation (3) gives $G_i=\sigma T_A^4$. Equation (7) then gives
+
+$$
+q_i=\sigma\left(T_B^4-T_A^4\right)\qquad\text{for every arc } i \text{ on B, at any } d.
+\tag{A2}
+$$
+
+**Concentric gray cylinders.** At $d=0$ the enclosure is rotationally symmetric, so $J$, $G$ and $q$ are uniform on each cylinder. Eliminating $G$ between (2) and (7) gives, for each surface,
+
+$$
+J=\sigma T^4-\frac{1-\epsilon}{\epsilon}\,q.
+\tag{A3}
+$$
+
+All radiation leaving B reaches A, so $G_B=J_A$ and $q_B=J_B-J_A$. The energy balance (8) gives $2\pi R\,q_A=-2\pi r\,q_B$. Substituting (A3) for both surfaces gives the two-surface enclosure result for long concentric cylinders:
+
+$$
+q_B=\frac{\sigma\left(T_B^4-T_A^4\right)}{\dfrac{1}{\epsilon_B}+\dfrac{r}{R}\left(\dfrac{1}{\epsilon_A}-1\right)}.
+\tag{A4}
+$$
+
+Unlike (A2), this result depends on both emissivities through the repeated reflections between the cylinders.
+
+**What the comparison tests.** The exact solutions (A2) and (A4) are uniform, and piecewise-constant radiosity represents a uniform solution exactly. Agreement is therefore expected at round-off and integration-tolerance level for any segment counts. The comparison verifies the derivation, the linear system (6), the net flux (7) and the view factors, including the tangent directions that bound B's shadow on A. It does not measure the angular resolution of the eccentric gray profile; that has no closed-form solution and is assessed by the refinement study in (a).
+
+All comparisons use the selected 96/128 discretization, integration tolerance 1e-8, $T_A=30$ °C and $T_B=200$ °C. The black-body and view-factor checks cover all 12 arrangements qualified in (a). The concentric check uses $r=0.4$ m with four emissivity pairs, including the report values 0.6/0.8.
+
+**Code:** [`run_analytical.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_analytical.py) evaluates (A1), (A2) and (A4), solves the same cases with [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py), and records the differences in `results/analytical/comparison.csv`.
+
+**Concentric gray cylinders, equation (A4):** r = 0.4 m, d = 0.
+
+| epsilon_A | epsilon_B | Analytical q_B (W/m^2) | Numerical q_B (W/m^2) | Relative difference | Numerical D_max (%) |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.6 | 0.8 | 1558.016783 | 1558.016783 | 5.8e-16 | 4.1e-13 |
+| 0.3 | 0.9 | 1155.811363 | 1155.811363 | 2.0e-16 | 6.5e-13 |
+| 0.9 | 0.3 | 699.570036 | 699.570036 | 3.3e-16 | 2.4e-13 |
+| 0.1 | 0.1 | 173.749421 | 173.749421 | 2.1e-15 | 8.0e-13 |
+
+**Limits that hold at every center distance, equations (A1) and (A2):** largest difference over the 12 arrangements.
+
+| Quantity | Analytical value | Arrangements | Largest absolute difference | Largest relative difference |
+| --- | --- | ---: | ---: | ---: |
+| Black surfaces: q_B (W/m²) | σ(T_B⁴ − T_A⁴) = 2362.992 | 12 | 1.8e-12 | 7.7e-16 |
+| Black surfaces: D_max (%) | 0 | 12 | 9.6e-14 | - |
+| Whole-body F_BA | 1 | 12 | 2.3e-15 | 2.3e-15 |
+| Whole-body F_AB | r/R | 12 | 1.0e-15 | 1.8e-15 |
+| Whole-body F_AA | 1 − r/R | 12 | 1.1e-15 | 1.7e-15 |
 
 ## Limitations
 
@@ -434,13 +550,35 @@ The finite-mesh criteria are practical differences between meshes, not rigorous 
 
 ## Code and reproduction
 
+### Guide to the calculation scripts
+
+The links below open the corresponding files on GitHub. The same files are included in the downloadable ZIP, so the calculations can also be inspected and run offline.
+
+| Calculation or output | Script on GitHub | What it does |
+| --- | --- | --- |
+| Circular geometry, view factors and integration tolerance | [radiation.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py) | Defines the surface arcs and normals; `calculate_view_factors` handles visibility, directional intervals and adaptive source-arc integration. |
+| Radiosity balance, net flux, energy balance, mean flux, D_max and D_pp | [radiation.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py) | `solve_radiation` solves the coupled equations; `RadiationResult.metrics` evaluates the reported measures from the segment-average fluxes. |
+| Surface and tolerance refinement, 4096-angle comparisons, 12 arrangements and extra smallest-gap check | [run_discretization.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py) | Runs the calculation cases; `compare` implements comparison equations (C1) and (C2). |
+| Selecting settings for part (b) | [finalize_discretization.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/finalize_discretization.py) | Checks the recorded evidence and writes the selected settings and discretization report. |
+| Radius, center-distance and temperature studies | [run_parameter_studies.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_parameter_studies.py) | Runs the three studies with the selected settings and saves their flux profiles and numerical results. |
+| Comparison with analytical solutions | [run_analytical.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_analytical.py) | Compares the selected-mesh solver with the closed-form concentric, black-body and whole-body view-factor results (A1)–(A4). |
+| Discretization figure | [plot_discretization.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_discretization.py) | Draws the selection-evidence figure from recorded results. |
+| Geometry diagram, study figures and written report | [plot_studies.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_studies.py) | Creates the figures and report from the recorded calculations and model documentation. |
+| Report-data checks and parameter-study commentary | [study_data.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/study_data.py) | Checks data integrity and consistency, and prepares the parameter-study descriptions. |
+| Website sections and interactive plots | [report_ui.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/report_ui.py), [app_charts.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/app_charts.py) | Present the recorded report results, comparison explanations and interactive charts. |
+| Interactive steady-state simulation and surface arrows | [streamlit_app.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/streamlit_app.py), [flux_plot.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/flux_plot.py) | Solve the user-selected case using `radiation.py` and display its flux. Eight arrow values are interpolated from the calculated segment averages; their drawing scale fits the gap. |
+| Numerical validation | [tests/test_solver.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/tests/test_solver.py), [tests/test_studies.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/tests/test_studies.py) | Test the solver's physical consistency and the recorded studies' meanings and integrity. |
+| Reproducing the complete assignment | [run_assignment.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_assignment.py) | Runs the refinement, selection, parameter-study, figure, report and packaging stages in order. |
+| Downloadable submission package | [build_submission.py](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/build_submission.py) | Collects the report, figures, results, source and tests into a ZIP with a file-hash manifest. |
+
+
 The downloadable submission package contains this report, all figures and tables used here, the numerical module, study runners, website source, tests, requirements and a file-hash manifest. From its root directory:
 
 ```powershell
 python -m pip install -r requirements-dev.txt
 python -m pytest -q
-python run_assignment.py
-python -m streamlit run streamlit_app.py
+python scripts/run_assignment.py
+python -m streamlit run scripts/streamlit_app.py
 ```
 
 Numerical solver SHA-256: `d7215049ac5fbece16e4a613b32ec29ed5aaaa28056abb09556b794f455d6efb`.

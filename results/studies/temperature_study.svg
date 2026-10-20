@@ -3409,28 +3409,29 @@ z
      <path d="M 611.248239 521.89476
 L 619.248239 521.89476
 L 627.248239 521.89476
-" style="fill: none; stroke: #1f77b4; stroke-width: 1.5; stroke-linecap: square"/>
+" style="fill: none; stroke: #8c564b; stroke-width: 1.5; stroke-linecap: square"/>
     </g>
     <g id="text_70">
-     <!-- 60 °C -->
+     <!-- 400 °C -->
      <g transform="translate(633.648239 524.69476) scale(0.08 -0.08)">
-      <use xlink:href="#DejaVuSans-36"/>
+      <use xlink:href="#DejaVuSans-34"/>
       <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
-      <use xlink:href="#DejaVuSans-20" transform="translate(127.246094 0)"/>
-      <use xlink:href="#DejaVuSans-b0" transform="translate(159.033203 0)"/>
-      <use xlink:href="#DejaVuSans-43" transform="translate(209.033203 0)"/>
+      <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
+      <use xlink:href="#DejaVuSans-20" transform="translate(190.869141 0)"/>
+      <use xlink:href="#DejaVuSans-b0" transform="translate(222.65625 0)"/>
+      <use xlink:href="#DejaVuSans-43" transform="translate(272.65625 0)"/>
      </g>
     </g>
     <g id="line2d_136">
      <path d="M 611.248239 533.63726
 L 619.248239 533.63726
 L 627.248239 533.63726
-" style="fill: none; stroke: #ff7f0e; stroke-width: 1.5; stroke-linecap: square"/>
+" style="fill: none; stroke: #9467bd; stroke-width: 1.5; stroke-linecap: square"/>
     </g>
     <g id="text_71">
-     <!-- 100 °C -->
+     <!-- 300 °C -->
      <g transform="translate(633.648239 536.43726) scale(0.08 -0.08)">
-      <use xlink:href="#DejaVuSans-31"/>
+      <use xlink:href="#DejaVuSans-33"/>
       <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
       <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
       <use xlink:href="#DejaVuSans-20" transform="translate(190.869141 0)"/>
@@ -3442,13 +3443,13 @@ L 627.248239 533.63726
      <path d="M 611.248239 545.37976
 L 619.248239 545.37976
 L 627.248239 545.37976
-" style="fill: none; stroke: #2ca02c; stroke-width: 1.5; stroke-linecap: square"/>
+" style="fill: none; stroke: #d62728; stroke-width: 1.5; stroke-linecap: square"/>
     </g>
     <g id="text_72">
-     <!-- 150 °C -->
+     <!-- 200 °C -->
      <g transform="translate(633.648239 548.17976) scale(0.08 -0.08)">
-      <use xlink:href="#DejaVuSans-31"/>
-      <use xlink:href="#DejaVuSans-35" transform="translate(63.623047 0)"/>
+      <use xlink:href="#DejaVuSans-32"/>
+      <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
       <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
       <use xlink:href="#DejaVuSans-20" transform="translate(190.869141 0)"/>
       <use xlink:href="#DejaVuSans-b0" transform="translate(222.65625 0)"/>
@@ -3459,13 +3460,13 @@ L 627.248239 545.37976
      <path d="M 677.046989 521.89476
 L 685.046989 521.89476
 L 693.046989 521.89476
-" style="fill: none; stroke: #d62728; stroke-width: 1.5; stroke-linecap: square"/>
+" style="fill: none; stroke: #2ca02c; stroke-width: 1.5; stroke-linecap: square"/>
     </g>
     <g id="text_73">
-     <!-- 200 °C -->
+     <!-- 150 °C -->
      <g transform="translate(699.446989 524.69476) scale(0.08 -0.08)">
-      <use xlink:href="#DejaVuSans-32"/>
-      <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
+      <use xlink:href="#DejaVuSans-31"/>
+      <use xlink:href="#DejaVuSans-35" transform="translate(63.623047 0)"/>
       <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
       <use xlink:href="#DejaVuSans-20" transform="translate(190.869141 0)"/>
       <use xlink:href="#DejaVuSans-b0" transform="translate(222.65625 0)"/>
@@ -3476,12 +3477,12 @@ L 693.046989 521.89476
      <path d="M 677.046989 533.63726
 L 685.046989 533.63726
 L 693.046989 533.63726
-" style="fill: none; stroke: #9467bd; stroke-width: 1.5; stroke-linecap: square"/>
+" style="fill: none; stroke: #ff7f0e; stroke-width: 1.5; stroke-linecap: square"/>
     </g>
     <g id="text_74">
-     <!-- 300 °C -->
+     <!-- 100 °C -->
      <g transform="translate(699.446989 536.43726) scale(0.08 -0.08)">
-      <use xlink:href="#DejaVuSans-33"/>
+      <use xlink:href="#DejaVuSans-31"/>
       <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
       <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
       <use xlink:href="#DejaVuSans-20" transform="translate(190.869141 0)"/>
@@ -3493,17 +3494,16 @@ L 693.046989 533.63726
      <path d="M 677.046989 545.37976
 L 685.046989 545.37976
 L 693.046989 545.37976
-" style="fill: none; stroke: #8c564b; stroke-width: 1.5; stroke-linecap: square"/>
+" style="fill: none; stroke: #1f77b4; stroke-width: 1.5; stroke-linecap: square"/>
     </g>
     <g id="text_75">
-     <!-- 400 °C -->
+     <!-- 60 °C -->
      <g transform="translate(699.446989 548.17976) scale(0.08 -0.08)">
-      <use xlink:href="#DejaVuSans-34"/>
+      <use xlink:href="#DejaVuSans-36"/>
       <use xlink:href="#DejaVuSans-30" transform="translate(63.623047 0)"/>
-      <use xlink:href="#DejaVuSans-30" transform="translate(127.246094 0)"/>
-      <use xlink:href="#DejaVuSans-20" transform="translate(190.869141 0)"/>
-      <use xlink:href="#DejaVuSans-b0" transform="translate(222.65625 0)"/>
-      <use xlink:href="#DejaVuSans-43" transform="translate(272.65625 0)"/>
+      <use xlink:href="#DejaVuSans-20" transform="translate(127.246094 0)"/>
+      <use xlink:href="#DejaVuSans-b0" transform="translate(159.033203 0)"/>
+      <use xlink:href="#DejaVuSans-43" transform="translate(209.033203 0)"/>
      </g>
     </g>
    </g>

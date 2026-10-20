@@ -30,6 +30,8 @@ $$
 
 The $a_i$ have units m² per m of axial length (equivalently m). Flux density $q_i$ has units W/m²; heat rate per axial length $Q'$ has units W/m. These are different quantities, particularly when radius changes. The reported local numerical flux is an arc average, rather than an exact pointwise value.
 
+**Code:** [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py) defines the circular geometry and equal-arc areas used in (1).
+
 ## 3. Derivation of the diffuse-gray energy balance
 
 For an opaque gray surface, absorptivity equals emissivity. Of the irradiation $G_i$ arriving at arc $i$, the absorbed fraction is $\epsilon_i G_i$ and the reflected fraction is $(1-\epsilon_i)G_i$. Thermal emission is $\epsilon_i\sigma T_i^4$, where $\sigma=5.670374419\times10^{-8}$ W/(m² K⁴). Temperatures in this expression are in kelvin.
@@ -96,6 +98,8 @@ $$
 
 Diffuse-gray radiosity and irradiation are described in the [COMSOL surface-radiation theory reference](https://doc.comsol.com/6.3/doc/com.comsol.help.heat/heat_ug_theory.07.051.html). The sign convention here is positive outward.
 
+**Code:** In [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py), `solve_radiation` solves (6), evaluates irradiation with (3), and calculates net flux with (7). `RadiationResult.metrics` evaluates the heat rates and energy balance in (8).
+
 ## 4. View factors for infinitely long cylinders
 
 **Symbols in equations (9) and (10)**
@@ -142,6 +146,8 @@ $$
 
 A midpoint ray identifies the first intersected receiver in each interval. Tangent directions account for the shadow cast by B. Average the resulting directional factors over each source arc using adaptive Gauss-Kronrod quadrature (`scipy.integrate.quad_vec`, maximum norm). The integration tolerance controls this numerical integration and is assessed separately from the surface segment counts in the discretization study.
 
+**Code:** [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py), function `calculate_view_factors`, implements the view factors, visibility and adaptive source-arc integration. Integration tolerance is a chosen numerical setting for evaluating this integral, rather than a physical input or another radiation equation.
+
 No row normalization, symmetrization or smoothing is applied to hide integration residuals. For this closed enclosure, checks include:
 
 - Nonnegativity, $F_{ij}\geq 0$ **(a radiation fraction cannot be negative)**.
@@ -174,6 +180,8 @@ $$
 
 Both are percentages. Differences between these metrics on two meshes are expressed in **percentage points**. Relative nonuniformity is undefined at effectively zero mean flux. Assignment cases use $T_B>T_A$ and have positive mean flux.
 
+**Code:** [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py), property `RadiationResult.metrics`, computes the mean flux, $D_{\max}$ and $D_{pp}$ from the original segment-average fluxes. Comparing two solutions later uses separate numerical formulas (C1) and (C2), introduced in (a) Discretization.
+
 Uniformity means that the angular flux equals the current surface mean everywhere. Comparing against a separate concentric calculation answers a different question and is not used as the definition of nonuniformity here.
 
 ## 6. Temperature dependence and interpretation
@@ -189,12 +197,17 @@ $$
 
 Changing $T_B$ scales absolute flux but leaves the normalized angular profile unchanged under these assumptions. This model consequence is checked using the six numerical temperature cases in part (b).
 
+**Code:** [`run_parameter_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_parameter_studies.py) runs those six temperatures using the same solver. [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py), function `supporting_checks`, also checks temperature scaling at the starting and largest-offset arrangements.
+
 Local net flux depends on both emission and irradiation from the whole enclosure, including diffuse reflections. It is not determined by local gap distance alone. The narrow-gap and wide-gap trends stated in the report refer to the calculated gray-surface cases.
 
 ## 7. Numerical checks and limits
 
 - Closure, reciprocity, nonnegativity and enclosure energy balance check numerical consistency.
 - Equal-temperature equilibrium and left/right reflection symmetry are tested at the public solver interfaces.
+- Closed-form concentric gray, black-body and whole-body view-factor results are compared in (c), equations (A1)–(A4).
 - Independent A/B surface refinement and separate integration-tolerance refinement establish finite-mesh stability for the stated study cases.
 - Very narrow gaps, other radii or different emissivities can require additional refinement. A successful solve is not an accuracy guarantee for arbitrary inputs.
 - Infinite isothermal cylinders omit end effects, participating media, material temperature dependence and transient energy storage. Interactive motion shows successive prescribed steady states.
+
+**Code:** The physical solver checks are in [`tests/test_solver.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/tests/test_solver.py); the recorded-study and data-integrity checks are in [`tests/test_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/tests/test_studies.py). The surface-refinement evidence is generated by [`run_discretization.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_discretization.py).

@@ -3,7 +3,7 @@
 import altair as alt
 
 
-def angular_chart(frame, quantity="deviation_percent", group=None):
+def angular_chart(frame, quantity="deviation_percent", group=None, order=None):
     title = "Deviation from own mean (%)" if quantity == "deviation_percent" else "Net outward flux (W/m²)"
     chart = alt.Chart(frame).mark_line().encode(
         x=alt.X("angle_deg:Q", title="Angle on B (degrees)", scale=alt.Scale(domain=[0, 360])),
@@ -25,7 +25,7 @@ def angular_chart(frame, quantity="deviation_percent", group=None):
                          alt.Tooltip(f"{quantity}:Q", title=title, format=".5f")],
             )
         else:
-            chart = chart.encode(color=alt.Color(f"{group}:N", title="Case"))
+            chart = chart.encode(color=alt.Color(f"{group}:N", title="Case", sort=order))
     return chart.properties(height=320)
 
 

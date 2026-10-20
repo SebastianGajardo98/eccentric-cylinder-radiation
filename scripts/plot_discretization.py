@@ -1,6 +1,5 @@
 """Render the selection evidence from completed numerical studies."""
 
-from pathlib import Path
 import json
 
 import matplotlib
@@ -8,9 +7,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from study_data import MESH
+
 
 def main():
-    directory = Path("results/discretization")
+    directory = MESH
     selected = json.loads((directory/"selected.json").read_text())
     outer, inner = selected["n_outer"], selected["n_inner"]
     cases = pd.read_csv(directory/"independent_cases.csv")

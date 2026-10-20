@@ -9,7 +9,8 @@ import numpy as np
 import pandas as pd
 
 from assignment_content import REQUIREMENTS, TITLE
-from study_data import DATA, MESH, ROOT, STUDIES, discussion, load_studies, study_rows, summary_markdown
+from study_data import (DATA, MESH, ROOT, STUDIES, concentric_table, discussion, every_distance_table,
+                        load_analytical, load_studies, study_rows, summary_markdown)
 
 
 def save_figure(fig, name):
@@ -73,7 +74,8 @@ def study_figures(cases, profiles):
         axes[1, 0].set(xlabel="Angle on B (degrees)", ylabel="Net flux (W/m²)", xlim=(0, 360))
         axes[1, 1].set(xlabel="Angle on B (degrees)", ylabel="Deviation from own mean (%)", xlim=(0, 360))
         axes[1, 1].axhline(0, ls="--", color="#64748b", lw=1)
-        axes[1, 1].legend(fontsize=8, ncols=2, loc="lower center")
+        handles, labels = axes[1, 1].get_legend_handles_labels()
+        axes[1, 1].legend(handles[::-1], labels[::-1], fontsize=8, ncols=2, loc="lower center")
         if study == "temperature":
             axes[1, 1].set_title("Normalized profiles coincide", fontsize=10)
         for ax in axes.flat:
@@ -95,17 +97,34 @@ def study_figures(cases, profiles):
     save_figure(fig, "baseline_flux")
 
 
-def write_reports(selection, cases, profiles, manifest):
+def analytical_markdown(analytical):
+    text = (ROOT / "docs" / "ANALYTICAL.md").read_text(encoding="utf-8").replace("## Comparison", "### Comparison", 1)
+    lines = [text, "**Concentric gray cylinders, equation (A4):** r = 0.4 m, d = 0.", "",
+             "| epsilon_A | epsilon_B | Analytical q_B (W/m^2) | Numerical q_B (W/m^2) | Relative difference | Numerical D_max (%) |",
+             "| ---: | ---: | ---: | ---: | ---: | ---: |"]
+    for row in concentric_table(analytical).itertuples():
+        lines.append(f"| {row.emissivity_outer:g} | {row.emissivity_inner:g} | {row.analytical:.6f} | {row.numerical:.6f} | {row.relative_difference:.1e} | {row.max_deviation_percent:.1e} |")
+    lines += ["", "**Limits that hold at every center distance, equations (A1) and (A2):** largest difference over the 12 arrangements.", "",
+              "| Quantity | Analytical value | Arrangements | Largest absolute difference | Largest relative difference |",
+              "| --- | --- | ---: | ---: | ---: |"]
+    for row in every_distance_table(analytical).itertuples():
+        relative = "-" if pd.isna(row.largest_relative_difference) else f"{row.largest_relative_difference:.1e}"
+        lines.append(f"| {row.quantity} | {row.exact} | {row.arrangements} | {row.largest_abs_difference:.1e} | {relative} |")
+    return "\n".join(lines)
+
+
+def write_reports(selection, cases, profiles, manifest, analytical):
     baseline = cases[cases.case.eq("baseline")].iloc[0]
     sections = ["# Influence of radius, center distance and temperature", "",
         "All cases use N_A = 96, N_B = 128, source integration tolerance 1e-8, R = 1 m, T_A = 30 C, epsilon_A = 0.6 and epsilon_B = 0.8. Only the named parameter changes within each study. All reported q values are segment averages.", ""]
+    sections += ["**Code:** [`run_parameter_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/run_parameter_studies.py) runs the three studies with the selected settings using [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py). [`plot_studies.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/plot_studies.py) generates these figures and the written report; [`study_data.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/study_data.py) checks the recorded data and prepares the commentary.", ""]
     for study, (title, _, _, _) in STUDIES.items():
         rows = study_rows(cases, study)
         sections += [f"## {title}", "", discussion(cases, study), "", summary_markdown(rows), "",
                      f"![{title} results](../results/studies/{study}_study.png)", ""]
     sections += ["## Numerical consistency", "",
         f"Across the 19 baseline/study cases, maximum relative energy imbalance is {cases.energy_imbalance_relative.max():.3e}, maximum view-factor closure residual is {cases.closure_max.max():.3e}, and maximum scaled reciprocity residual is {cases.reciprocity_relative_max.max():.3e}. These are consistency checks; mesh selection also uses finite-refinement comparisons.", "",
-        "Reproduce with `python run_assignment.py`. Source fingerprints and raw tables are in results/studies/manifest.json, cases.csv and profiles.csv.", ""]
+        "Reproduce with `python scripts/run_assignment.py`. Source fingerprints and raw tables are in results/studies/manifest.json, cases.csv and profiles.csv.", ""]
     parameters = "\n".join(sections)
     (ROOT / "docs" / "PARAMETERS.md").write_text(parameters, encoding="utf-8")
     model = (ROOT / "docs" / "MODEL.md").read_text(encoding="utf-8")
@@ -121,7 +140,7 @@ def write_reports(selection, cases, profiles, manifest):
         "## The following is required", "",
         *[f"**({part})** {text}\n" for part, text in REQUIREMENTS.items()],
         "## Objective and numerical scope", "",
-        "Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses. The agreed submission scope does not include comparison against analytical solutions.", "",
+        "Quantify deviation from uniform net heat-flux density on cylinder B using view factors, derive the thermodynamic model, select a surface discretization, and study r, d and T_B. Descriptions, diagrams, discussion, raw results and the corresponding program code accompany the analyses.", "",
         "![Geometry and surface segments](../results/studies/geometry_and_segments.png)", "",
         "Figure: working geometry. The displayed 12/8 segment boundaries illustrate the idea of equal-arc discretization; suitable calculation counts are assessed in the refinement study below.", "",
         (ROOT / "docs" / "GEOMETRY.md").read_text(encoding="utf-8"), "",
@@ -136,13 +155,16 @@ def write_reports(selection, cases, profiles, manifest):
         "2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.",
         "3. At the stated fixed emissivities, increasing center distance or increasing radius at fixed center distance increases relative nonuniformity over the studied ranges. The two variations change enclosure geometry in different ways.",
         "4. Increasing prescribed inner temperature increases absolute flux, while normalized nonuniformity remains unchanged under the temperature-independent-emissivity model.",
-        "5. Interactive motion and playback display successive steady states, not physical transient heating. Mirroring B across the y-axis mirrors its flux profile without changing scalar heat-rate or nonuniformity measures.", "",
+        "5. Interactive motion displays successive steady states, not physical transient heating. Mirroring B across the y-axis mirrors its flux profile without changing scalar heat-rate or nonuniformity measures.",
+        f"6. Where closed-form solutions exist, the solver reproduces them: concentric gray cylinders for four emissivity pairs, black surfaces and whole-body view factors at all 12 arrangements, with a largest relative flux difference of {analytical[analytical.quantity.eq('mean_inner_flux_w_m2')].relative_difference.max():.1e}.", "",
+        analytical_markdown(analytical), "",
         "## Limitations", "",
         "The finite-mesh criteria are practical differences between meshes, not rigorous bounds on the exact solution. Qualification applies to the listed geometry points and fixed emissivities. Arbitrary near-contact or different-emissivity explorations need their own convergence assessment. Prescribed isothermal infinite cylinders omit end effects, participating media and transient energy storage.", "",
         "## Code and reproduction", "",
+        (ROOT / "docs" / "CODE_GUIDE.md").read_text(encoding="utf-8").replace("## Guide to", "### Guide to", 1), "",
         "The downloadable submission package contains this report, all figures and tables used here, the numerical module, study runners, website source, tests, requirements and a file-hash manifest. From its root directory:", "",
         "```powershell", "python -m pip install -r requirements-dev.txt", "python -m pytest -q",
-        "python run_assignment.py", "python -m streamlit run streamlit_app.py", "```", "",
+        "python scripts/run_assignment.py", "python -m streamlit run scripts/streamlit_app.py", "```", "",
         f"Numerical solver SHA-256: `{manifest['solver_sha256']}`.", ""]
     (ROOT / "docs" / "REPORT.md").write_text("\n".join(report), encoding="utf-8")
 
@@ -153,8 +175,8 @@ def main():
                          "svg.hashsalt": "eccentric-cylinder-radiation"})
     geometry_diagram()
     study_figures(cases, profiles)
-    write_reports(selected, cases, profiles, manifest)
-    print("Exported geometry, baseline and three parameter-study figures, and the written report.")
+    write_reports(selected, cases, profiles, manifest, load_analytical(selected))
+    print("Exported geometry, baseline and three parameter-study figures, and the written report.", flush=True)
 
 
 if __name__ == "__main__":

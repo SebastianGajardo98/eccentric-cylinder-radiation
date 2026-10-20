@@ -7,9 +7,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parent
+SCRIPTS = Path(__file__).resolve().parent
+ROOT = SCRIPTS.parent
 DATA = ROOT / "results" / "studies"
 MESH = ROOT / "results" / "discretization"
+ANALYTICAL = ROOT / "results" / "analytical"
 STUDIES = {
     "offset": ("Center distance d", "d (m)", "d", 7),
     "radius": ("Inner radius r", "r (m)", "r", 5),
@@ -20,7 +22,7 @@ STUDIES = {
 def source_hash():
     # Universal-newline reading makes the same source fingerprint portable
     # between Windows CRLF checkouts and Linux/Streamlit Cloud LF checkouts.
-    return hashlib.sha256((ROOT / "radiation.py").read_text(encoding="utf-8").encode("utf-8")).hexdigest()
+    return hashlib.sha256((SCRIPTS / "radiation.py").read_text(encoding="utf-8").encode("utf-8")).hexdigest()
 
 
 def text_hash(path):
@@ -33,7 +35,7 @@ def load_studies():
     manifest = json.loads((DATA / "manifest.json").read_text(encoding="utf-8"))
     selection = json.loads((MESH / "selected.json").read_text(encoding="utf-8"))
     if manifest["solver_sha256"] != source_hash() or selection["solver_sha256"] != source_hash():
-        raise ValueError("Study results do not match radiation.py. Run python run_assignment.py.")
+        raise ValueError("Study results do not match radiation.py. Run python scripts/run_assignment.py.")
     for name, digest in manifest["data_sha256"].items():
         if text_hash(DATA / name) != digest:
             raise ValueError(f"Study data are incomplete or changed: {name}.")
@@ -89,6 +91,47 @@ def load_studies():
         if not np.isclose(profile.flux_w_m2.mean(), row.mean_inner_flux_w_m2, rtol=1e-10):
             raise ValueError(f"Profile and summary disagree: {row.case}.")
     return selection, cases, profiles, manifest
+
+
+def load_analytical(selection):
+    """Read the closed-form comparisons; reject results from another solver or mesh."""
+    table = pd.read_csv(ANALYTICAL / "comparison.csv")
+    if not table.solver_sha256.eq(source_hash()).all():
+        raise ValueError("Analytical comparison does not match radiation.py. Run python scripts/run_assignment.py.")
+    if not (table.n_outer.eq(selection["n_outer"]).all() and table.n_inner.eq(selection["n_inner"]).all()
+            and np.allclose(table.tolerance, selection["integration_tolerance"], rtol=0, atol=0)):
+        raise ValueError("The analytical comparison must use the selected discretization.")
+    if set(table.check) != {"concentric_gray", "black_body", "view_factors"}:
+        raise ValueError("The analytical comparison is incomplete.")
+    return table
+
+
+def concentric_table(table):
+    """One row per emissivity pair: equation (A4) against the solver at d = 0."""
+    rows = table[table.check.eq("concentric_gray")]
+    key = ["emissivity_outer", "emissivity_inner"]
+    flux = rows[rows.quantity.eq("mean_inner_flux_w_m2")].set_index(key)
+    deviation = rows[rows.quantity.eq("max_deviation_percent")].set_index(key)
+    return pd.DataFrame({"analytical": flux.analytical, "numerical": flux.numerical,
+                         "relative_difference": flux.relative_difference,
+                         "max_deviation_percent": deviation.numerical}).reset_index()
+
+
+def every_distance_table(table):
+    """Largest difference over all arrangements for the limits that hold at any d."""
+    black = table[table.check.eq("black_body") & table.quantity.eq("mean_inner_flux_w_m2")].analytical.iloc[0]
+    labels = {("black_body", "mean_inner_flux_w_m2"): ("Black surfaces: q_B (W/m²)", f"σ(T_B⁴ − T_A⁴) = {black:.3f}"),
+              ("black_body", "max_deviation_percent"): ("Black surfaces: D_max (%)", "0"),
+              ("view_factors", "F_BA"): ("Whole-body F_BA", "1"),
+              ("view_factors", "F_AB"): ("Whole-body F_AB", "r/R"),
+              ("view_factors", "F_AA"): ("Whole-body F_AA", "1 − r/R")}
+    rows = []
+    for (check, quantity), (label, exact) in labels.items():
+        part = table[table.check.eq(check) & table.quantity.eq(quantity)]
+        rows.append({"quantity": label, "exact": exact, "arrangements": part.point.nunique(),
+                     "largest_abs_difference": part.difference.abs().max(),
+                     "largest_relative_difference": part.relative_difference.max()})
+    return pd.DataFrame(rows)
 
 
 def study_rows(cases, study):
