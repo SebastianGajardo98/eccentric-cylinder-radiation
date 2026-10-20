@@ -13,8 +13,8 @@ def number_columns():
             "d": st.column_config.NumberColumn("d (m)", format="%.2f"),
             "temperature_inner_c": st.column_config.NumberColumn("T_B (°C)", format="%.0f"),
             "mean_inner_flux_w_m2": st.column_config.NumberColumn("Mean q (W/m²)", format="%.3f"),
-            "max_deviation_percent": st.column_config.NumberColumn("Max deviation (%)", format="%.5f"),
-            "peak_to_peak_percent": st.column_config.NumberColumn("Peak-to-peak (%)", format="%.5f"),
+            "max_deviation_percent": st.column_config.NumberColumn("D_max (%)", format="%.5f"),
+            "peak_to_peak_percent": st.column_config.NumberColumn("D_pp (%)", format="%.5f"),
             "heat_inner_w_m": st.column_config.NumberColumn("Q′_B (W/m)", format="%.3f"),
             "n_outer": st.column_config.NumberColumn("N_A", format="%d"),
             "n_inner": st.column_config.NumberColumn("N_B", format="%d"),
@@ -83,6 +83,7 @@ def discretization_page(selection, cases):
         st.write("N_A = 96 and N_B = 64 remain fixed while the integration tolerance tightens from 1e-6 to 1e-9. This separates integration error from surface-discretization error.")
     cols = ["n_outer", "n_inner", "tolerance", "mean_inner_flux_w_m2", "max_deviation_percent", "peak_to_peak_percent"]
     st.dataframe(rows[cols], column_config=number_columns(), hide_index=True, width="stretch")
+    st.caption(r"From equation (13): $D_{\max}$ is the largest percentage departure from B's mean flux; $D_{pp}$ is the maximum-to-minimum flux difference expressed as a percentage of that mean.")
     if group != "integration":
         st.altair_chart(trend_chart(rows, x, label, "max_deviation_percent", "Maximum relative deviation (%)"), width="stretch")
         profiles = []
