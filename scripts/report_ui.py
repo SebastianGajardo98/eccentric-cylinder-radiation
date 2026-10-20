@@ -5,7 +5,7 @@ import streamlit as st
 
 from app_charts import angular_chart, trend_chart
 from assignment_content import REQUIREMENTS
-from study_data import DATA, MESH, ROOT, SCRIPTS, STUDIES, concentric_table, discussion, every_distance_table, study_rows
+from study_data import DATA, MESH, ROOT, SCRIPTS, STUDIES, discussion, study_rows
 
 
 def source_note(description, *scripts):
@@ -32,9 +32,14 @@ def number_columns():
 
 
 def numerical_evidence(cases):
-    st.dataframe(pd.DataFrame({"Check": ["Maximum relative energy imbalance", "Maximum row-closure residual", "Maximum scaled reciprocity residual"],
-        "Value": [f"{cases.energy_imbalance_relative.max():.3e}", f"{cases.closure_max.max():.3e}", f"{cases.reciprocity_relative_max.max():.3e}"]}), hide_index=True, width="stretch")
-    st.caption("These check consistency. Convergence of the local flux distribution is assessed separately by mesh refinement.")
+    st.dataframe(pd.DataFrame({
+        "Check": ["Energy balance", "View-factor closure", "Reciprocity"],
+        "What it confirms": ["Heat leaving B equals heat absorbed by A, equation (8)",
+                             "All radiation leaving a segment lands somewhere in the enclosure: its view factors sum to 1",
+                             "Exchange between two segments is the same in both directions: a_i F_ij = a_j F_ji"],
+        "Largest deviation, all cases": [f"{cases.energy_imbalance_relative.max():.1e}", f"{cases.closure_max.max():.1e}", f"{cases.reciprocity_relative_max.max():.1e}"]}),
+        hide_index=True, width="stretch")
+    st.caption("Values near zero mean the calculation is internally consistent. They do not measure mesh accuracy; that is assessed by the refinement study in (a).")
 
 
 def requirement(part):
@@ -208,8 +213,6 @@ def parameters_page(cases, profiles):
     st.altair_chart(trend_chart(rows, x, xlabel, "mean_inner_flux_w_m2", "Mean q on B (W/m²)"), width="stretch")
     st.dataframe(rows[["r", "d", "temperature_inner_c", "mean_inner_flux_w_m2", "max_deviation_percent", "peak_to_peak_percent", "heat_inner_w_m"]], column_config=number_columns(), hide_index=True, width="stretch")
     st.caption("q is heat per surface area (W/m²); Q′_B is total heat per axial length (W/m). Changing radius also changes emitting circumference, so these quantities need not have the same trend.")
-    with st.expander("Numerical checks for these cases"):
-        numerical_evidence(rows)
     with st.expander("Exportable figure with all four views"):
         st.image(str(DATA / f"{study}_study.png"), width="stretch")
         source_note("Draws the exported study figures", "plot_studies.py")
@@ -218,35 +221,13 @@ def parameters_page(cases, profiles):
     st.download_button("Download angular profiles (CSV)", frame.drop(columns="label").to_csv(index=False), f"{study}_profiles.csv", "text/csv")
 
 
-def analytical_comparison(analytical):
-    st.subheader("Comparison with analytical solutions")
-    st.markdown((ROOT / "docs" / "ANALYTICAL.md").read_text(encoding="utf-8").split("\n", 1)[1])
-    st.markdown("**Concentric gray cylinders, equation (A4)**: r = 0.4 m, d = 0")
-    st.dataframe(concentric_table(analytical), hide_index=True, width="stretch", column_config={
-        "emissivity_outer": st.column_config.NumberColumn("ε_A", format="%.1f"),
-        "emissivity_inner": st.column_config.NumberColumn("ε_B", format="%.1f"),
-        "analytical": st.column_config.NumberColumn("Analytical q_B (W/m²)", format="%.6f"),
-        "numerical": st.column_config.NumberColumn("Numerical q_B (W/m²)", format="%.6f"),
-        "relative_difference": st.column_config.NumberColumn("Relative difference", format="%.1e"),
-        "max_deviation_percent": st.column_config.NumberColumn("Numerical D_max (%)", format="%.1e")})
-    st.markdown("**Limits that hold at every center distance, equations (A1) and (A2)**: largest difference over the 12 arrangements")
-    st.dataframe(every_distance_table(analytical), hide_index=True, width="stretch", column_config={
-        "quantity": "Quantity", "exact": "Analytical value", "arrangements": "Arrangements",
-        "largest_abs_difference": st.column_config.NumberColumn("Largest |numerical − analytical|", format="%.1e"),
-        "largest_relative_difference": st.column_config.NumberColumn("Largest relative difference", format="%.1e")})
-    st.write("The solver reproduces every closed-form result to round-off level. These limits confirm the model and its implementation; the accuracy of the eccentric gray profiles rests on the refinement study in (a).")
-    source_note("Evaluates the closed-form limits and solves the same cases", "run_analytical.py", "radiation.py")
-    st.download_button("Download analytical comparison (CSV)", analytical.to_csv(index=False), "analytical_comparison.csv", "text/csv")
-
-
-def conclusions_page(selection, cases, manifest, analytical):
+def conclusions_page(selection, cases, manifest):
     st.header("(c) Discussion and conclusions")
     requirement("c")
     st.write("Part (c) brings together the interpretation of the calculations. Its descriptions, diagrams and commentary also accompany the analyses in (a) and (b). The conclusions below refer to the stated parameter ranges and fixed emissivities.")
     for study in STUDIES:
         st.subheader(STUDIES[study][0])
         st.write(discussion(cases, study))
-    analytical_comparison(analytical)
     st.subheader("Numerical reliability and scope")
     st.write("The 96/128 mesh satisfies the documented finite-refinement criteria at all 12 geometry points, including an additional high-offset reference. These checks establish consistency and stability for the listed cases; arbitrary near-contact or different-emissivity explorations need their own convergence review.")
     numerical_evidence(cases)
@@ -257,7 +238,7 @@ def conclusions_page(selection, cases, manifest, analytical):
     source_note("Runs every analysis in order and builds the download", "run_assignment.py", "build_submission.py")
     from build_submission import build_package
     st.download_button("Download complete submission (ZIP)", build_package(), "eccentric-cylinder-assignment.zip", "application/zip", type="primary")
-    st.download_button("Download written report (Markdown)", (ROOT / "docs" / "REPORT.md").read_text(encoding="utf-8"), "REPORT.md", "text/markdown")
+    st.download_button("Download written report (PDF)", (ROOT / "docs" / "REPORT.pdf").read_bytes(), "eccentric-cylinder-report.pdf", "application/pdf")
     st.download_button("Download all parameter results (CSV)", (DATA / "cases.csv").read_bytes(), "parameter_studies.csv", "text/csv")
     st.code("python -m pip install -r requirements-dev.txt\npython -m pytest -q\npython scripts/run_assignment.py\npython -m streamlit run scripts/streamlit_app.py", language="powershell")
     with st.expander("Numerical source and provenance"):

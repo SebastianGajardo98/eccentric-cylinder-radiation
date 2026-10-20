@@ -18,7 +18,7 @@
     "inner": 0.8
   },
   "data_sha256": {
-    "cases.csv": "53dd629d52b4c218c366af5c32e364b539e4870953cc00ccb151bfbfff4e73ab",
+    "cases.csv": "3428dfa24848fec892513aef239998d4f7039d283add4678d29b209682c9dff5",
     "profiles.csv": "bb78cc74261d2a24b66e3ed6b5f7da0e39e02d234832a0c392550027dd48601d"
   },
   "text_hash_format": "SHA-256 of UTF-8 text with canonical LF line endings",

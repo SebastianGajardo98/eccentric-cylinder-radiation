@@ -14,7 +14,7 @@ from app_charts import angular_chart
 from assignment_content import TITLE
 from flux_plot import arrow_samples, geometry_chart
 from radiation import Geometry, ViewFactors, calculate_view_factors, solve_radiation
-from study_data import ROOT, load_analytical, load_studies, source_hash
+from study_data import ROOT, load_studies, source_hash
 import report_ui
 
 
@@ -25,9 +25,11 @@ st.set_page_config(page_title=TITLE, layout="wide", initial_sidebar_state="expan
 st.title(TITLE)
 st.caption("Sebastian Alberto Gajardo Lobos · Heat and Mass Transfer · Numerical view-factor analysis")
 
-# About half the cost of the report mesh; at the report's starting arrangement and
-# smallest gap, D_max and D_pp stay within about 0.2 percentage points of it.
-PREVIEW_MESH = (48, 64)
+# One fixed, fast resolution for the interactive page: about 1.5 s per new geometry on
+# a desktop PC. Its D_max is about 0.1 percentage points below the report mesh at the
+# starting arrangement and about 1.1 below at the smallest report gap (e = 0.9).
+SIMULATION_MESH = (24, 32)
+SIMULATION_TOLERANCE = 1e-6
 SECTIONS = ["Assignment", "(a) Model", "(a) Discretization", "(b) Parameter studies", "(c) Discussion and conclusions", "Interactive simulation"]
 if st.session_state.get("report_section") == "Overview":
     st.session_state.report_section = "Assignment"
@@ -41,7 +43,6 @@ with st.sidebar:
 
 try:
     selection, cases, profiles, manifest = load_studies()
-    analytical = load_analytical(selection)
 except (FileNotFoundError, ValueError) as error:
     st.error(f"The completed report data need regeneration: {error}")
     st.code("python scripts/run_assignment.py")
@@ -101,11 +102,11 @@ elif section == "(a) Discretization":
 elif section == "(b) Parameter studies":
     report_ui.parameters_page(cases, profiles)
 elif section == "(c) Discussion and conclusions":
-    report_ui.conclusions_page(selection, cases, manifest, analytical)
+    report_ui.conclusions_page(selection, cases, manifest)
 else:
     st.header("Interactive steady-state simulation")
     st.write("Explore how geometry and prescribed temperature change the flux on B. The completed report results in (a) and (b) keep their documented fixed parameters.")
-    settings = st.session_state.get("sim_inputs", {"r": .4, "position": .5, "temperature": 200.0, "epsilon_a": .6, "epsilon_b": .8, "quality": "Preview", "na": 96, "nb": 128, "tolerance": 1e-8})
+    settings = st.session_state.get("sim_inputs", {"r": .4, "position": .5, "temperature": 200.0, "epsilon_a": .6, "epsilon_b": .8})
     with st.sidebar:
         st.subheader("Physical parameters")
         radius = st.slider("Inner radius r (m)", .1, .8, settings["r"], .05, key="sim_radius")
@@ -114,24 +115,11 @@ else:
         temperature = st.slider("Inner temperature T_B (°C)", 31.0, 600.0, settings["temperature"], 1.0, key="sim_temperature")
         epsilon_a = st.slider("Outer emissivity ε_A", .05, 1.0, settings["epsilon_a"], .05, key="sim_epsilon_a")
         epsilon_b = st.slider("Inner emissivity ε_B", .05, 1.0, settings["epsilon_b"], .05, key="sim_epsilon_b")
-        with st.expander("Numerical settings"):
-            options = ["Selected", "Preview", "Custom"]
-            quality = st.selectbox("Surface resolution", options, index=options.index(settings["quality"]), key="sim_quality")
-            na, nb = (selection["n_outer"], selection["n_inner"]) if quality == "Selected" else PREVIEW_MESH
-            tolerance = 1e-8
-            if quality == "Custom":
-                na = int(st.number_input("Segments on A", 4, 512, settings["na"], 1, key="sim_na"))
-                nb = int(st.number_input("Segments on B", 4, 512, settings["nb"], 1, key="sim_nb"))
-                tolerance = st.select_slider("Integration tolerance", [1e-6, 1e-7, 1e-8, 1e-9], value=settings["tolerance"], format_func=lambda n: f"{n:.0e}", key="sim_tolerance")
-            st.caption(f"Preview ({PREVIEW_MESH[0]}/{PREVIEW_MESH[1]}) takes about half the time of the report mesh; at the report's starting arrangement and smallest gap, its D_max and D_pp differ from the report mesh by at most about 0.2 percentage points. Selected reproduces the report mesh exactly. Custom changes numerical resolution, not the physical geometry.")
-        st.caption(f"Calculation: {na} A arcs / {nb} B arcs, tolerance {tolerance:.0e}")
-    st.session_state.sim_inputs = {"r": radius, "position": position, "temperature": temperature, "epsilon_a": epsilon_a, "epsilon_b": epsilon_b, "quality": quality, "na": na if quality == "Custom" else settings["na"], "nb": nb if quality == "Custom" else settings["nb"], "tolerance": tolerance}
-    if na+nb > 640:
-        st.info("Use at most 640 total surface segments in the interactive explorer. The offline refinement runner supports the reference calculations.")
-        st.stop()
+    st.session_state.sim_inputs = {"r": radius, "position": position, "temperature": temperature, "epsilon_a": epsilon_a, "epsilon_b": epsilon_b}
+    (na, nb), tolerance = SIMULATION_MESH, SIMULATION_TOLERANCE
     geometry = Geometry(r=radius, d=abs(position)*(1-radius), side="left" if position < 0 else "right", n_outer=na, n_inner=nb)
     thermal = {"temperature_outer_k": 303.15, "temperature_inner_k": temperature+273.15, "emissivity_outer": epsilon_a, "emissivity_inner": epsilon_b}
-    with st.spinner("Calculating circular-arc view factors and surface flux… A new position or radius takes several seconds; temperature and emissivity changes reuse the view factors."):
+    with st.spinner("Calculating circular-arc view factors and surface flux…"):
         factors = cached_factors(geometry, tolerance, source_hash())
         result = solve_radiation(factors, **thermal)
     report_ui.source_note("Calculates the current view factors, radiosity and flux; equations (1)–(13) are explained in (a) Model", "radiation.py")
@@ -140,8 +128,7 @@ else:
         st.metric("Mean q on B", f"{metrics['mean_inner_flux_w_m2']:.2f} W/m²", border=True)
         st.metric("D_max", f"{metrics['max_deviation_percent']:.3f}%", border=True)
         st.metric("D_pp", f"{metrics['peak_to_peak_percent']:.3f}%", border=True)
-    if quality == "Preview":
-        st.caption("Preview mesh: values can differ slightly from the report tables. Choose Selected under Numerical settings to reproduce the report mesh.")
+    st.caption(f"Calculated with {na} equal segments on A and {nb} on B so that each change takes only a moment. The report tables use the finer, qualified {selection['n_outer']}/{selection['n_inner']} mesh, so D_max and D_pp here are slightly lower: by about 0.1 percentage points at the starting arrangement and up to about one point at the smallest gaps.")
     figure = geometry_chart(result, representation="net", detail=False, arrow_count=8, uniform_reference=False, length_contrast=1)
     st.pyplot(figure, width="stretch")
     plt.close(figure)
@@ -165,11 +152,11 @@ else:
         st.write(f"Q′_B = {metrics['heat_inner_w_m']:.3f} W/m; Q′_A = {metrics['heat_outer_w_m']:.3f} W/m.")
         st.json({**factors.diagnostics, "relative_energy_imbalance": metrics["energy_imbalance_relative"]})
         if factors.diagnostics["reciprocity_relative_max"] > 1e-5 or (metrics["energy_imbalance_relative"] or 0) > 1e-5:
-            st.warning("Numerical residuals are elevated. Tighten integration tolerance before interpreting small flux differences.")
+            st.warning("Numerical residuals are elevated for this arrangement; treat small flux differences with caution.")
         export = frame.assign(r_m=radius, d_m=geometry.d, center_b_x_m=geometry.center_x, n_outer=na, n_inner=nb, integration_tolerance=tolerance, solver_sha256=source_hash(), **thermal)
         st.download_button("Download this simulation (CSV)", export.to_csv(index=False), "simulation_profile.csv", "text/csv")
         st.download_button("Download view factors (CSV)", pd.DataFrame(factors.factors).to_csv(index=False), "view_factors.csv", "text/csv")
-    st.caption("Arbitrary parameter combinations are explorations. The selected mesh is qualified at the documented report points with ε_A/ε_B = 0.6/0.8; other cases may need their own refinement check.")
+    st.caption(f"This page is for exploration. The report results use the {selection['n_outer']}/{selection['n_inner']} mesh, qualified at the documented report points with ε_A/ε_B = 0.6/0.8.")
 
 if section != "Interactive simulation":
     following = SECTIONS[SECTIONS.index(section)+1]

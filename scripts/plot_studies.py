@@ -9,8 +9,7 @@ import numpy as np
 import pandas as pd
 
 from assignment_content import REQUIREMENTS, TITLE
-from study_data import (DATA, MESH, ROOT, STUDIES, concentric_table, discussion, every_distance_table,
-                        load_analytical, load_studies, study_rows, summary_markdown)
+from study_data import DATA, MESH, ROOT, STUDIES, discussion, load_studies, study_rows, summary_markdown
 
 
 def save_figure(fig, name):
@@ -97,23 +96,7 @@ def study_figures(cases, profiles):
     save_figure(fig, "baseline_flux")
 
 
-def analytical_markdown(analytical):
-    text = (ROOT / "docs" / "ANALYTICAL.md").read_text(encoding="utf-8").replace("## Comparison", "### Comparison", 1)
-    lines = [text, "**Concentric gray cylinders, equation (A4):** r = 0.4 m, d = 0.", "",
-             "| epsilon_A | epsilon_B | Analytical q_B (W/m^2) | Numerical q_B (W/m^2) | Relative difference | Numerical D_max (%) |",
-             "| ---: | ---: | ---: | ---: | ---: | ---: |"]
-    for row in concentric_table(analytical).itertuples():
-        lines.append(f"| {row.emissivity_outer:g} | {row.emissivity_inner:g} | {row.analytical:.6f} | {row.numerical:.6f} | {row.relative_difference:.1e} | {row.max_deviation_percent:.1e} |")
-    lines += ["", "**Limits that hold at every center distance, equations (A1) and (A2):** largest difference over the 12 arrangements.", "",
-              "| Quantity | Analytical value | Arrangements | Largest absolute difference | Largest relative difference |",
-              "| --- | --- | ---: | ---: | ---: |"]
-    for row in every_distance_table(analytical).itertuples():
-        relative = "-" if pd.isna(row.largest_relative_difference) else f"{row.largest_relative_difference:.1e}"
-        lines.append(f"| {row.quantity} | {row.exact} | {row.arrangements} | {row.largest_abs_difference:.1e} | {relative} |")
-    return "\n".join(lines)
-
-
-def write_reports(selection, cases, profiles, manifest, analytical):
+def write_reports(selection, cases, profiles, manifest):
     baseline = cases[cases.case.eq("baseline")].iloc[0]
     sections = ["# Influence of radius, center distance and temperature", "",
         "All cases use N_A = 96, N_B = 128, source integration tolerance 1e-8, R = 1 m, T_A = 30 C, epsilon_A = 0.6 and epsilon_B = 0.8. Only the named parameter changes within each study. All reported q values are segment averages.", ""]
@@ -155,9 +138,7 @@ def write_reports(selection, cases, profiles, manifest, analytical):
         "2. Independent refinement of the two surfaces is necessary: stable total heat alone does not establish resolution of local nonuniformity. The selected 96/128 mesh passes the documented profile and metric-change criteria at all 12 geometry points, with an additional high-eccentricity check.",
         "3. At the stated fixed emissivities, increasing center distance or increasing radius at fixed center distance increases relative nonuniformity over the studied ranges. The two variations change enclosure geometry in different ways.",
         "4. Increasing prescribed inner temperature increases absolute flux, while normalized nonuniformity remains unchanged under the temperature-independent-emissivity model.",
-        "5. Interactive motion displays successive steady states, not physical transient heating. Mirroring B across the y-axis mirrors its flux profile without changing scalar heat-rate or nonuniformity measures.",
-        f"6. Where closed-form solutions exist, the solver reproduces them: concentric gray cylinders for four emissivity pairs, black surfaces and whole-body view factors at all 12 arrangements, with a largest relative flux difference of {analytical[analytical.quantity.eq('mean_inner_flux_w_m2')].relative_difference.max():.1e}.", "",
-        analytical_markdown(analytical), "",
+        "5. Interactive motion displays successive steady states, not physical transient heating. Mirroring B across the y-axis mirrors its flux profile without changing scalar heat-rate or nonuniformity measures.", "",
         "## Limitations", "",
         "The finite-mesh criteria are practical differences between meshes, not rigorous bounds on the exact solution. Qualification applies to the listed geometry points and fixed emissivities. Arbitrary near-contact or different-emissivity explorations need their own convergence assessment. Prescribed isothermal infinite cylinders omit end effects, participating media and transient energy storage.", "",
         "## Code and reproduction", "",
@@ -175,7 +156,7 @@ def main():
                          "svg.hashsalt": "eccentric-cylinder-radiation"})
     geometry_diagram()
     study_figures(cases, profiles)
-    write_reports(selected, cases, profiles, manifest, load_analytical(selected))
+    write_reports(selected, cases, profiles, manifest)
     print("Exported geometry, baseline and three parameter-study figures, and the written report.", flush=True)
 
 

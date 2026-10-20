@@ -205,7 +205,6 @@ Local net flux depends on both emission and irradiation from the whole enclosure
 
 - Closure, reciprocity, nonnegativity and enclosure energy balance check numerical consistency.
 - Equal-temperature equilibrium and left/right reflection symmetry are tested at the public solver interfaces.
-- Closed-form concentric gray, black-body and whole-body view-factor results are compared in (c), equations (A1)–(A4).
 - Independent A/B surface refinement and separate integration-tolerance refinement establish finite-mesh stability for the stated study cases.
 - Very narrow gaps, other radii or different emissivities can require additional refinement. A successful solve is not an accuracy guarantee for arbitrary inputs.
 - Infinite isothermal cylinders omit end effects, participating media, material temperature dependence and transient energy storage. Interactive motion shows successive prescribed steady states.

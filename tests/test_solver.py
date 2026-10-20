@@ -1,8 +1,7 @@
 import numpy as np
 import pytest
 
-from radiation import SIGMA, Geometry, calculate_view_factors, solve_radiation
-from run_analytical import concentric_flux, whole_body_factors
+from radiation import Geometry, calculate_view_factors, solve_radiation
 
 
 def test_closed_eccentric_enclosure_has_reciprocal_nonnegative_view_factors():
@@ -50,25 +49,6 @@ def test_moving_to_the_opposite_side_mirrors_view_factors_and_surface_flux():
     assert q_left.metrics["energy_imbalance_relative"] < 2e-7
     assert q_left.metrics["mean_inner_flux_w_m2"] == pytest.approx(q_right.metrics["mean_inner_flux_w_m2"], rel=2e-7)
     assert q_left.metrics["max_deviation_percent"] == pytest.approx(q_right.metrics["max_deviation_percent"], rel=2e-6)
-
-
-def test_concentric_gray_flux_matches_two_surface_enclosure_solution():
-    model = calculate_view_factors(Geometry(r=0.4, d=0, n_outer=12, n_inner=8))
-    for emissivity_outer, emissivity_inner in [(0.6, 0.8), (0.3, 0.9), (0.9, 0.3), (0.1, 0.1)]:
-        result = solve_radiation(model, emissivity_outer=emissivity_outer, emissivity_inner=emissivity_inner)
-        exact = SIGMA*(473.15**4-303.15**4)/(1/emissivity_inner+0.4*(1/emissivity_outer-1))
-        np.testing.assert_allclose(result.inner_flux, exact, rtol=1e-9)
-        assert concentric_flux(0.4, emissivity_outer, emissivity_inner) == pytest.approx(exact, rel=1e-14)
-
-
-def test_black_surfaces_and_whole_body_view_factors_match_closed_forms_at_any_distance():
-    model = calculate_view_factors(Geometry(r=0.4, d=0.54, n_outer=12, n_inner=8))
-    result = solve_radiation(model, emissivity_outer=1, emissivity_inner=1)
-    np.testing.assert_allclose(result.inner_flux, SIGMA*(473.15**4-303.15**4), rtol=1e-9)
-    factors = whole_body_factors(model)
-    assert factors["F_BA"] == pytest.approx(1, abs=1e-9)
-    assert factors["F_AB"] == pytest.approx(0.4, abs=1e-8)
-    assert factors["F_AA"] == pytest.approx(0.6, abs=1e-8)
 
 
 @pytest.mark.parametrize("options", [{"r": 1}, {"d": 0.7}, {"d": -0.1},

@@ -5,10 +5,10 @@ import io
 import json
 import zipfile
 
-from study_data import ANALYTICAL, DATA, MESH, ROOT, SCRIPTS, load_studies
+from study_data import DATA, MESH, ROOT, SCRIPTS, load_studies
 
 PROJECT_FILES = ("requirements.txt", "requirements-dev.txt", "pytest.ini", "README.md", ".streamlit/config.toml")
-DOC_FILES = ("ASSIGNMENT.md", "MODEL.md", "GEOMETRY.md", "COMPARISON.md", "ANALYTICAL.md", "CODE_GUIDE.md", "DISCRETIZATION.md", "PARAMETERS.md", "REPORT.md", "REQUIREMENTS.md", "FLUX_ARROWS.md")
+DOC_FILES = ("ASSIGNMENT.md", "MODEL.md", "GEOMETRY.md", "COMPARISON.md", "CODE_GUIDE.md", "DISCRETIZATION.md", "PARAMETERS.md", "REPORT.md", "REPORT.pdf", "REQUIREMENTS.md", "FLUX_ARROWS.md")
 
 
 def submission_files():
@@ -19,7 +19,6 @@ def submission_files():
     for pattern in ("independent_*", "qualification_96_128_*", "worst_case_*", "support_96_128_*", "selected.json", "discretization_selection.*"):
         files += sorted(MESH.glob(pattern))
     files += sorted(p for p in DATA.iterdir() if p.is_file())
-    files += [ANALYTICAL / "comparison.csv"]
     missing = [str(p.relative_to(ROOT)) for p in files if not p.is_file()]
     if missing:
         raise FileNotFoundError("Incomplete submission files: "+", ".join(missing))

@@ -4,8 +4,7 @@ Usage: python scripts/run_discretization.py --stage independent
        python scripts/run_discretization.py --stage qualify --outer 96 --inner 128
 
 Computational caches are local to tmp/; all physical outputs include parameters,
-diagnostics and source fingerprints. Closed-form limits are compared separately
-in run_analytical.py.
+diagnostics and source fingerprints.
 """
 
 import argparse

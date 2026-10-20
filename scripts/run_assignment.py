@@ -14,8 +14,8 @@ def main(workers=3):
         ["run_discretization.py", "--stage", "worst-case", "--workers", str(workers)],
         ["run_discretization.py", "--stage", "support", "--outer", "96", "--inner", "128", "--workers", str(workers)],
         ["finalize_discretization.py"], ["plot_discretization.py"],
-        ["run_parameter_studies.py", "--workers", str(workers)], ["run_analytical.py"], ["plot_studies.py"],
-        ["build_submission.py"],
+        ["run_parameter_studies.py", "--workers", str(workers)], ["plot_studies.py"],
+        ["build_report_pdf.py"], ["build_submission.py"],
     ]
     for command in stages:
         print("Running "+" ".join(command), flush=True)

@@ -11,7 +11,6 @@ The report and website reproduce the full original requirements (a), (b) and (c)
 | Study d with the same selected mesh | Seven center distances at fixed radius, temperature and emissivities; concentric reference identified separately | (b) Center distance d |
 | Study T_B with the same selected mesh | Six temperatures at fixed geometry and emissivities; flux growth and unchanged normalized shape explained | (b) Inner temperature T_B |
 | Descriptions, diagrams and commentary | Annotated geometry and segment diagram, convergence evidence, angular profiles, parameter-trend plots, interpretation and limitations | Model, (a), (b), and (c) Discussion and conclusions; docs/REPORT.md |
-| Compare with analytical solutions where appropriate | Concentric gray cylinders for four emissivity pairs; black surfaces and whole-body view factors at all 12 arrangements; derivation of the closed forms | (c) Discussion and conclusions; docs/ANALYTICAL.md; results/analytical/comparison.csv |
 | Program code for every analysis | Solver, all study runners, plot/report generators, website source, requirements, tests and a file-hash manifest | scripts/; (c) Discussion and conclusions; downloadable submission ZIP |
 
 ## Report data integrity

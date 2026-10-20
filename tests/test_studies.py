@@ -6,11 +6,12 @@ import json
 import zipfile
 
 import numpy as np
+from pypdf import PdfReader
 import pytest
 
 import study_data
 from build_submission import build_package
-from study_data import load_analytical, load_studies, study_rows
+from study_data import load_studies, study_rows
 
 
 def test_completed_studies_preserve_selected_mesh_and_flux_definitions():
@@ -42,17 +43,10 @@ def test_centered_reference_is_uniform_and_offset_study_is_eccentric_elsewhere()
     assert np.all(np.diff(rows.max_deviation_percent) > 0)
 
 
-def test_recorded_analytical_limits_use_selected_mesh_and_agree_with_closed_forms():
-    selected, _, _, _ = load_studies()
-    table = load_analytical(selected)
-    every_distance = table[table.check.isin(["view_factors", "black_body"])]
-    assert every_distance.point.nunique() == len(selected["qualified_geometry_points"]) == 12
-    concentric = table[table.check.eq("concentric_gray")]
-    assert concentric.d.eq(0).all() and concentric.emissivity_outer.nunique() > 1
-    flux = table[table.quantity.eq("mean_inner_flux_w_m2")]
-    assert flux.relative_difference.max() < 1e-9
-    assert table[table.quantity.eq("max_deviation_percent")].numerical.abs().max() < 1e-6
-    assert table[table.check.eq("view_factors")].difference.abs().max() < 1e-8
+def test_pdf_report_was_built_from_the_current_markdown_report():
+    report = PdfReader(study_data.ROOT/"docs"/"REPORT.pdf")
+    assert report.metadata["/ReportSourceSHA256"] == study_data.text_hash(study_data.ROOT/"docs"/"REPORT.md")
+    assert len(report.pages) > 10
 
 
 def test_altered_profile_data_are_rejected(tmp_path, monkeypatch):
@@ -78,9 +72,9 @@ def test_data_integrity_survives_windows_or_linux_line_endings(tmp_path, monkeyp
 def test_submission_contains_every_required_source_report_and_verified_data():
     with zipfile.ZipFile(io.BytesIO(build_package())) as archive:
         required = {"scripts/radiation.py", "scripts/run_assignment.py", "scripts/run_discretization.py",
-                    "scripts/run_parameter_studies.py", "scripts/run_analytical.py", "scripts/streamlit_app.py",
-                    "docs/MODEL.md", "docs/ANALYTICAL.md", "docs/REPORT.md", "docs/REQUIREMENTS.md",
-                    "results/studies/cases.csv", "results/studies/profiles.csv", "results/analytical/comparison.csv",
+                    "scripts/run_parameter_studies.py", "scripts/streamlit_app.py",
+                    "docs/MODEL.md", "docs/REPORT.md", "docs/REPORT.pdf", "docs/REQUIREMENTS.md",
+                    "results/studies/cases.csv", "results/studies/profiles.csv",
                     "results/studies/offset_study.png", "results/studies/radius_study.png", "results/studies/temperature_study.png"}
         assert required.issubset(archive.namelist())
         assert not any("secrets" in name or name.startswith(("tmp/", ".git/", "output/")) for name in archive.namelist())
