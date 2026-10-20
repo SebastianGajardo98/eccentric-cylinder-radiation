@@ -73,7 +73,9 @@ def execute(specs, prefix, workers):
             case = record["case"]
             results[case] = (record, angles, flux)
             pd.DataFrame({"angle_deg": angles, "flux_w_m2": flux}).to_csv(OUTPUT/f"{prefix}_{case}_profile.csv", index=False)
-            pd.DataFrame([x[0] for x in results.values()]).to_csv(OUTPUT/f"{prefix}_cases.csv", index=False)
+            # Rows follow the specification order, not the order in which workers finish.
+            finished = [results[spec["case"]][0] for spec in specs if spec["case"] in results]
+            pd.DataFrame(finished).to_csv(OUTPUT/f"{prefix}_cases.csv", index=False)
             print(json.dumps({"completed": case,
                               "max_deviation_percent": record["max_deviation_percent"],
                               "peak_to_peak_percent": record["peak_to_peak_percent"],

@@ -120,9 +120,10 @@ def main():
             raise RuntimeError(f"Typeset {rendered} of {formula_count} formulas; check the KaTeX download and the TeX in REPORT.md.")
         run_browser(browser, Path(work) / "profile", "--no-pdf-header-footer", f"--print-to-pdf={printed}", source.as_uri())
         writer = PdfWriter(clone_from=PdfReader(printed))
-    writer.add_metadata({"/Title": TITLE, "/Author": "Sebastian Alberto Gajardo Lobos",
-                         "/Subject": "Heat and Mass Transfer (Radiative Heat Transfer)",
-                         "/ReportSourceSHA256": text_hash(SOURCE)})
+    # Replacing the metadata drops the print timestamps, so an unchanged report rebuilds byte for byte.
+    writer.metadata = {"/Title": TITLE, "/Author": "Sebastian Alberto Gajardo Lobos",
+                       "/Subject": "Heat and Mass Transfer (Radiative Heat Transfer)",
+                       "/ReportSourceSHA256": text_hash(SOURCE)}
     with OUTPUT.open("wb") as stream:
         writer.write(stream)
     print(f"Written report PDF: {OUTPUT} ({len(writer.pages)} pages, {formula_count} formulas)", flush=True)
