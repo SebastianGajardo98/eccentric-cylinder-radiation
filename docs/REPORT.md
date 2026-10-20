@@ -203,13 +203,17 @@ Passing these checks does not guarantee an accurate flux distribution around B. 
 
 ### 5. Measuring departure from uniform surface flux
 
-Use the area-weighted mean on B, then compare every local arc-average flux to that same mean:
+Equation (12) first calculates the mean flux around B, $\bar q_B$. It is area-weighted, meaning larger surface pieces contribute proportionally more.
+
+Then it calculates each segment's percentage departure from that mean:
 
 $$
 \bar q_B=\frac{\sum_{i\in B}a_iq_i}{\sum_{i\in B}a_i},\qquad
 \delta_i=100\frac{q_i-\bar q_B}{|\bar q_B|}.
 \tag{12}
 $$
+
+Here, B is divided into equal-area arcs, so its area-weighted mean is the ordinary average of the segment fluxes.
 
 The two reported relative nonuniformity measures are
 
