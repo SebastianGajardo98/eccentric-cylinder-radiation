@@ -11,7 +11,7 @@ import pytest
 
 import study_data
 from build_submission import build_package
-from study_data import load_studies, study_rows
+from study_data import DOWNLOAD_COLUMNS, download_cases, download_profiles, load_studies, study_rows
 
 
 def test_completed_studies_preserve_selected_mesh_and_flux_definitions():
@@ -47,6 +47,15 @@ def test_pdf_report_was_built_from_the_current_markdown_report():
     report = PdfReader(study_data.ROOT/"docs"/"REPORT.pdf")
     assert report.metadata["/ReportSourceSHA256"] == study_data.text_hash(study_data.ROOT/"docs"/"REPORT.md")
     assert len(report.pages) > 10
+
+
+def test_downloads_contain_physical_inputs_and_results_only():
+    _, cases, profiles, _ = load_studies()
+    table = download_cases(cases)
+    assert list(table.columns) == ["study", *DOWNLOAD_COLUMNS.values()]
+    assert len(table) == 19 and table["T_A (C)"].eq(30).all()
+    offset = download_profiles(profiles[profiles.study.eq("offset")], "offset")
+    assert list(offset.columns) == ["d (m)", "angle on B (deg)", "q_B (W/m2)", "deviation from mean (%)"]
 
 
 def test_altered_profile_data_are_rejected(tmp_path, monkeypatch):

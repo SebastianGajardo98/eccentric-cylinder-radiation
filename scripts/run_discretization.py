@@ -12,7 +12,6 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import asdict
 import hashlib
 import json
-import time
 
 import numpy as np
 import pandas as pd
@@ -55,14 +54,11 @@ def run_case(spec):
     g = Geometry(r=spec["r"], d=spec["d"], n_outer=spec["n_outer"], n_inner=spec["n_inner"])
     tol = spec.get("tolerance", 1e-8)
     fingerprint = source_hash()
-    start = time.perf_counter()
-    model, cached = load_view_factors(g, tol)
+    model, _ = load_view_factors(g, tol)
     thermal = dict(THERMAL, temperature_inner_k=spec.get("temperature_inner_k", 473.15))
     result = solve_radiation(model, **thermal)
     record = {**spec, "tolerance": tol, "R": 1.0, **thermal,
-              **result.metrics, **model.diagnostics,
-              "elapsed_seconds": time.perf_counter()-start, "cached": cached,
-              "solver_sha256": fingerprint}
+              **result.metrics, **model.diagnostics, "solver_sha256": fingerprint}
     angles = np.degrees(model.angles[g.n_outer:])
     return record, angles, result.inner_flux
 
@@ -78,7 +74,7 @@ def execute(specs, prefix, workers):
             results[case] = (record, angles, flux)
             pd.DataFrame({"angle_deg": angles, "flux_w_m2": flux}).to_csv(OUTPUT/f"{prefix}_{case}_profile.csv", index=False)
             pd.DataFrame([x[0] for x in results.values()]).to_csv(OUTPUT/f"{prefix}_cases.csv", index=False)
-            print(json.dumps({"completed": case, "elapsed_s": round(record["elapsed_seconds"], 2),
+            print(json.dumps({"completed": case,
                               "max_deviation_percent": record["max_deviation_percent"],
                               "peak_to_peak_percent": record["peak_to_peak_percent"],
                               "energy_residual": record["energy_imbalance_relative"]}), flush=True)

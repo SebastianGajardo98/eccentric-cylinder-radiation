@@ -5,7 +5,8 @@ import streamlit as st
 
 from app_charts import angular_chart, trend_chart
 from assignment_content import REQUIREMENTS
-from study_data import DATA, MESH, ROOT, SCRIPTS, STUDIES, discussion, study_rows
+from study_data import (DATA, MESH, ROOT, SCRIPTS, STUDIES, discussion, download_cases, download_comparisons,
+                        download_profiles, study_rows)
 
 
 def source_note(description, *scripts):
@@ -178,7 +179,7 @@ def discretization_page(selection, cases):
     st.image(str(DATA / "baseline_flux.png"), width="stretch")
     st.caption("Calculated segment averages at their midpoint angles; connecting lines guide the eye. The selected mesh is used unchanged in all three required parameter studies.")
     source_note("Working-case and study figures", "plot_studies.py")
-    st.download_button("Download refinement comparisons (CSV)", comparisons.to_csv(index=False), "refinement_comparisons.csv", "text/csv")
+    st.download_button("Download refinement comparisons (CSV)", download_comparisons(comparisons, all_cases).to_csv(index=False), "refinement_comparisons.csv", "text/csv")
 
 
 def parameters_page(cases, profiles):
@@ -217,8 +218,8 @@ def parameters_page(cases, profiles):
         st.image(str(DATA / f"{study}_study.png"), width="stretch")
         source_note("Draws the exported study figures", "plot_studies.py")
         st.download_button("Download figure (PNG)", (DATA / f"{study}_study.png").read_bytes(), f"{study}_study.png", "image/png")
-    st.download_button("Download this study (CSV)", rows.to_csv(index=False), f"{study}_cases.csv", "text/csv")
-    st.download_button("Download angular profiles (CSV)", frame.drop(columns="label").to_csv(index=False), f"{study}_profiles.csv", "text/csv")
+    st.download_button("Download this study (CSV)", download_cases(rows).to_csv(index=False), f"{study}_cases.csv", "text/csv")
+    st.download_button("Download angular profiles (CSV)", download_profiles(frame, study).to_csv(index=False), f"{study}_profiles.csv", "text/csv")
 
 
 def conclusions_page(selection, cases, manifest):
@@ -239,7 +240,7 @@ def conclusions_page(selection, cases, manifest):
     from build_submission import build_package
     st.download_button("Download complete submission (ZIP)", build_package(), "eccentric-cylinder-assignment.zip", "application/zip", type="primary")
     st.download_button("Download written report (PDF)", (ROOT / "docs" / "REPORT.pdf").read_bytes(), "eccentric-cylinder-report.pdf", "application/pdf")
-    st.download_button("Download all parameter results (CSV)", (DATA / "cases.csv").read_bytes(), "parameter_studies.csv", "text/csv")
+    st.download_button("Download all parameter results (CSV)", download_cases(cases).to_csv(index=False), "parameter_studies.csv", "text/csv")
     st.code("python -m pip install -r requirements-dev.txt\npython -m pytest -q\npython scripts/run_assignment.py\npython -m streamlit run scripts/streamlit_app.py", language="powershell")
     with st.expander("Numerical source and provenance"):
         st.code((SCRIPTS / "radiation.py").read_text(encoding="utf-8"), language="python")

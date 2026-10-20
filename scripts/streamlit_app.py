@@ -153,9 +153,16 @@ else:
         st.json({**factors.diagnostics, "relative_energy_imbalance": metrics["energy_imbalance_relative"]})
         if factors.diagnostics["reciprocity_relative_max"] > 1e-5 or (metrics["energy_imbalance_relative"] or 0) > 1e-5:
             st.warning("Numerical residuals are elevated for this arrangement; treat small flux differences with caution.")
-        export = frame.assign(r_m=radius, d_m=geometry.d, center_b_x_m=geometry.center_x, n_outer=na, n_inner=nb, integration_tolerance=tolerance, solver_sha256=source_hash(), **thermal)
+        export = pd.DataFrame({"angle on B (deg)": frame.angle_deg, "q_B (W/m2)": frame.flux_w_m2.round(6),
+                               "deviation from mean (%)": frame.deviation_percent.round(9)+0.0})
+        export = export.assign(**{"r (m)": radius, "d (m)": round(geometry.d, 6), "x_B (m)": round(geometry.center_x, 6),
+                                  "T_A (C)": 30.0, "T_B (C)": temperature, "eps_A": epsilon_a, "eps_B": epsilon_b, "N_A": na, "N_B": nb})
         st.download_button("Download this simulation (CSV)", export.to_csv(index=False), "simulation_profile.csv", "text/csv")
-        st.download_button("Download view factors (CSV)", pd.DataFrame(factors.factors).to_csv(index=False), "view_factors.csv", "text/csv")
+        segments = [f"A{i+1}" for i in range(na)] + [f"B{i+1}" for i in range(nb)]
+        matrix = pd.DataFrame(factors.factors, index=pd.Index(segments, name="from (row) / to (column)"), columns=segments)
+        st.download_button("Download view factors (CSV)", matrix.to_csv(), "view_factors.csv", "text/csv")
+        st.caption(f"View factors: each row is an emitting segment and each column a receiving segment. "
+                   f"A1–A{na} and B1–B{nb} are numbered counterclockwise from 0° (the right side).")
     st.caption(f"This page is for exploration. The report results use the {selection['n_outer']}/{selection['n_inner']} mesh, qualified at the documented report points with ε_A/ε_B = 0.6/0.8.")
 
 if section != "Interactive simulation":

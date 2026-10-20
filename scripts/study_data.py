@@ -92,6 +92,58 @@ def load_studies():
     return selection, cases, profiles, manifest
 
 
+# Reader-facing CSV downloads keep the physical inputs, mesh and results. Integrity
+# fingerprints and solver diagnostics stay in the recorded files under results/.
+DOWNLOAD_COLUMNS = {
+    "r": "r (m)", "d": "d (m)", "e": "e = d/(R-r)", "minimum_gap_m": "minimum gap (m)",
+    "temperature_outer_c": "T_A (C)", "temperature_inner_c": "T_B (C)",
+    "emissivity_outer": "eps_A", "emissivity_inner": "eps_B", "n_outer": "N_A", "n_inner": "N_B",
+    "mean_inner_flux_w_m2": "q_B mean (W/m2)", "min_inner_flux_w_m2": "q_B min (W/m2)",
+    "max_inner_flux_w_m2": "q_B max (W/m2)", "max_deviation_percent": "D_max (%)",
+    "peak_to_peak_percent": "D_pp (%)", "heat_inner_w_m": "Q'_B (W/m)",
+}
+STUDY_NAMES = {"baseline": "working case", "offset": "center distance d",
+               "radius": "inner radius r", "temperature": "inner temperature T_B"}
+PROFILE_PARAMETER = {"offset": "d (m)", "radius": "r (m)", "temperature": "T_B (C)"}
+
+
+def download_cases(rows):
+    """Case table for download: one row per case, readable column names."""
+    rows = rows.assign(temperature_outer_c=rows.temperature_outer_k-273.15)
+    table = rows[list(DOWNLOAD_COLUMNS)].rename(columns=DOWNLOAD_COLUMNS)
+    exact = ["r (m)", "d (m)", "e = d/(R-r)", "minimum gap (m)", "T_A (C)", "T_B (C)",
+             "q_B mean (W/m2)", "q_B min (W/m2)", "q_B max (W/m2)", "Q'_B (W/m)"]
+    table[exact] = table[exact].round(6)
+    # Below 1e-9 percent the nonuniformity is round-off; adding 0.0 avoids -0.0.
+    table[["D_max (%)", "D_pp (%)"]] = table[["D_max (%)", "D_pp (%)"]].round(9)+0.0
+    if rows.study.nunique() > 1:
+        table.insert(0, "study", rows.study.map(STUDY_NAMES))
+    return table
+
+
+def download_profiles(frame, study):
+    """Angular profiles of one study for download."""
+    return pd.DataFrame({PROFILE_PARAMETER[study]: frame.parameter_value.round(6),
+                         "angle on B (deg)": frame.angle_deg, "q_B (W/m2)": frame.flux_w_m2.round(6),
+                         # Adding 0.0 turns -0.0 into 0.0 after rounding away round-off.
+                         "deviation from mean (%)": frame.deviation_percent.round(9)+0.0})
+
+
+def download_comparisons(comparisons, cases):
+    """Refinement comparisons for download, with meshes and tolerances instead of case names."""
+    labels = {row.case: f"{row.tolerance:.0e}" if row.case.startswith("tolerance_") else f"{row.n_outer}/{row.n_inner}"
+              for row in cases.itertuples()}
+    refined = {"outer": "segments on A", "inner": "segments on B", "integration": "integration tolerance"}
+    return pd.DataFrame({"refined setting": comparisons.study.map(refined),
+                         "coarser (A/B or tolerance)": comparisons.coarse.map(labels),
+                         "finer (A/B or tolerance)": comparisons.fine.map(labels),
+                         "profile change (%)": comparisons.profile_change_percent,
+                         "mean flux change (%)": comparisons.mean_change_percent,
+                         "D_max change (pp)": comparisons.max_deviation_change_pp,
+                         "D_pp change (pp)": comparisons.peak_to_peak_change_pp,
+                         "within limits": comparisons.passes})
+
+
 def study_rows(cases, study):
     return cases[cases.study.eq(study)].sort_values("parameter_value").copy()
 
