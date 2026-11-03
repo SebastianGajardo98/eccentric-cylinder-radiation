@@ -37,6 +37,7 @@ h2 { font-size: 14.5pt; margin: 1.6em 0 .5em; padding-bottom: .15em; border-bott
 h3 { font-size: 12pt; margin: 1.3em 0 .4em; break-after: avoid; }
 h4 { font-size: 10.5pt; margin: 1.1em 0 .3em; break-after: avoid; }
 p, li { orphans: 3; widows: 3; }
+p:has(> strong:only-child) { break-after: avoid; }
 table { border-collapse: collapse; width: 100%; margin: .7em 0; font-size: 8.8pt; line-height: 1.3; break-inside: avoid; }
 th, td { border: 1px solid #d6d3d1; padding: 3px 6px; vertical-align: top; }
 th { background: #f5f5f4; }

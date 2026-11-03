@@ -28,15 +28,17 @@ a_A=R\Delta\theta_A,\qquad a_B=r\Delta\theta_B.
 \tag{1}
 $$
 
-The $a_i$ have units m² per m of axial length (equivalently m). Flux density $q_i$ has units W/m²; heat rate per axial length $Q'$ has units W/m. These are different quantities, particularly when radius changes. The reported local numerical flux is an arc average, rather than an exact pointwise value.
+The $a_i$ have units m² per m of axial length (equivalently m). **Net heat-flux density $q_i$ means radiation leaving the surface minus radiation arriving at it, per unit area.** Its units are W/m²; heat rate per axial length $Q'$ has units W/m. These are different quantities, particularly when radius changes. The reported local numerical flux is an arc average, rather than an exact pointwise value.
 
 **Code:** [`radiation.py`](https://github.com/SebastianGajardo98/eccentric-cylinder-radiation/blob/main/scripts/radiation.py) defines the circular geometry and equal-arc areas used in (1).
 
 ## 3. Derivation of the diffuse-gray energy balance
 
-For an opaque gray surface, absorptivity equals emissivity. Of the irradiation $G_i$ arriving at arc $i$, the absorbed fraction is $\epsilon_i G_i$ and the reflected fraction is $(1-\epsilon_i)G_i$. Thermal emission is $\epsilon_i\sigma T_i^4$, where $\sigma=5.670374419\times10^{-8}$ W/(m² K⁴). Temperatures in this expression are in kelvin.
+**Equations (2)–(8) develop the radiation balance: emission, reflection, irradiation, the coupled solution for the surfaces, net heat flux and conservation of energy.**
 
-The total outgoing radiosity is therefore
+For an opaque gray surface, absorptivity equals emissivity. **Irradiation $G_i$ is the radiation arriving at surface arc $i$, per unit area.** The absorbed fraction is $\epsilon_i G_i$ and the reflected fraction is $(1-\epsilon_i)G_i$. Thermal emission is $\epsilon_i\sigma T_i^4$, where $\sigma=5.670374419\times10^{-8}$ W/(m² K⁴). Temperatures in this expression are in kelvin.
+
+**Radiosity $J_i$ is all radiation leaving surface arc $i$: its own emission plus reflected incoming radiation, per unit area.** Therefore,
 
 $$
 J_i=
